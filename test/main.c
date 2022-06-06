@@ -10,8 +10,7 @@
 
 int in_main(int argc, char** argv)
 {
-	InStr test = in_str_immut_from_literal("{Hello} this is {a} {rigerous t{est}}");
+	InStr test = in_str_immut_from_literal("{Hello} this is {a} {rigerous t}{est");
 	in_str_format(test);
-
 	return 0;
 }
