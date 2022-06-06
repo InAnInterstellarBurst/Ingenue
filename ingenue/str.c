@@ -9,6 +9,12 @@
 #include "pch.h"
 #include <stdarg.h>
 
+static InStr fmt_translate(InStrView seq)
+{
+	return in_str_immut_from_literal("AAAAiaaaaaaaaaaaaaaaaaaaa");
+}
+
+
 InStr in_str_alloc(size_t capacity)
 {
 	InStr s = { 0 };
@@ -133,6 +139,29 @@ InStr in_str_copy(InStr dst, InStr src, size_t len)
 	}
 }
 
+InStr in_str_copy_realloc(InStr dst, InStr src, size_t len)
+{
+	IN_ASSERT(dst.mutable && dst.ownMemory);
+	size_t cpylen = len;
+	if(len == 0 || len > src.length) {
+		cpylen = src.length;
+	}
+
+	size_t newlen = dst.length + cpylen;
+	if(dst.capacity < newlen) {
+		dst.capacity = newlen;
+		dst.data = realloc(dst.data, newlen);
+		if(dst.data == NULL) {
+			return gInNullStr;
+		}
+	}
+
+	InStr s = dst;
+	s.length = newlen;
+	memcpy(&s.data[dst.length], src.data, cpylen);
+	return s;
+}
+
 InStr in_str_copy_from_view(InStr dst, InStrView v)
 {
 	v.str.data += v.start; // Jesus fuck
@@ -212,12 +241,35 @@ InStrRangedView in_str_subview_between_v(InStrView v, char open, char close)
 
 InStr in_str_format(InStr fmt, ...)
 {
+	InStr result = in_str_alloc(fmt.capacity * 2); // A really rough estimate
+	InStrView last = { .str = fmt };
+	last.start = 0;
+	last.length = 0;
 	InStrRangedView sub = in_str_subview_between(fmt, '{', '}');
+
 	while(!in_str_isnull(sub.snipped.str)) {
+		InStrView skipped = last;
+		skipped.length = sub.snipped.start;
+		skipped.start = last.start + last.length;
+
+		in_str_putv(skipped, stdout);
+		puts("^^");
+
+		last = sub.snipped;
+
 		in_str_putv(sub.snipped, stdout);
-		puts("");
+		puts("--");
+
 		sub = in_str_subview_between_v(sub.full, '{', '}');
 	}
 
+	InStrView rem = last;
+	rem.start = last.start + last.length;
+	rem.length = last.str.length - rem.start;
+	in_str_putv(rem, stdout);
+	puts("--");
+
+	// Useless bit :)
+	fmt_translate(last);
 	return gInNullStr;
 }

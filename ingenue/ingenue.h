@@ -65,6 +65,7 @@ InStr in_str_set_from_literal(InStr str, char* data);
 InStr in_str_copy(InStr dst, InStr src, size_t len);
 InStr in_str_copy_from_view(InStr dst, InStrView v);
 InStr in_str_copy_literal(InStr dst, char* data);
+InStr in_str_copy_realloc(InStr dst, InStr src, size_t len);
 char* in_str_alloc_cstr(InStr str);
 
 InStr in_str_pop_at(InStr str, char from);
