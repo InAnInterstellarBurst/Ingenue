@@ -197,7 +197,14 @@ InStrView in_str_subview_at_first_v(InStrView v, char from)
 	char* dataoff = &v.str.data[v.start];
 	InStr offstr = in_str_emplace_into(v.length, dataoff);
 	offstr.length = v.length;
-	return in_str_subview_at_first(offstr, from);
+
+	InStrView r = in_str_subview_at_first(offstr, from);
+	if(!in_str_isnull(r.str)) {
+		r.str = v.str;
+	}
+
+	r.start += v.start;
+	return r;
 }
 
 InStrRangedView in_str_subview_between(InStr s, char open, char close)
@@ -249,8 +256,8 @@ InStr in_str_format(InStr fmt, ...)
 
 	while(!in_str_isnull(sub.snipped.str)) {
 		InStrView skipped = last;
-		skipped.length = sub.snipped.start;
 		skipped.start = last.start + last.length;
+		skipped.length = sub.snipped.start - skipped.start;
 
 		in_str_putv(skipped, stdout);
 		puts("^^");
@@ -265,9 +272,10 @@ InStr in_str_format(InStr fmt, ...)
 
 	InStrView rem = last;
 	rem.start = last.start + last.length;
-	rem.length = last.str.length - rem.start;
+	rem.length = fmt.length - rem.start;
 	in_str_putv(rem, stdout);
 	puts("--");
+
 
 	// Useless bit :)
 	fmt_translate(last);
