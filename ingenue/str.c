@@ -176,7 +176,7 @@ InStrRangedView in_str_subview_between(InStr s, char open, char close)
 	InStrRangedView r = { 0 };
 	InStrView first = in_str_subview_at_first(s, open);
 	if(in_str_isnull(first.str)) {
-		return (InStrRangedView){ 0 };
+		return r;
 	}
 
 	InStrView second = in_str_subview_at_first_v(first, close);
