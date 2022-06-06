@@ -1,0 +1,16 @@
+gcc
+
+-Iingenue/
+-I.
+-DIN_LINUX=1
+-DIN_DEBUG=1
+-DIN_DESKTOP=1
+-DIN_WIN32=0
+
+-Wall
+-Wextra
+-Wno-unused-parameter
+-Werror
+
+%c -std=c11
+%h --include=ingenue/pch.h
