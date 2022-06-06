@@ -22,6 +22,11 @@ int in_main(int argc, char** argv)
 
 	in_str_puts(s1, stdout);
 	puts("");
+
+	in_str_set_literal(s1, "Hello!");
+	in_str_puts(s1, stdout);
+	puts("");
+	
 	in_str_free(s1);
 	return 0;
 }

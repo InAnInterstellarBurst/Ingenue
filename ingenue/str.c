@@ -78,6 +78,21 @@ void in_str_putv(InStrView v, FILE* stream)
 	fwrite(&v.str->data[v.start], sizeof(char), v.length, stream);
 }
 
+InStr in_str_set_literal(InStr str, char* data)
+{
+	IN_ASSERT(str.mutable);
+	InStr src = in_str_from_literal(data);
+	if(str.capacity >= src.length) {
+		InStr s = str;
+		s.length = src.length;
+		memset(s.data, 0, str.capacity);
+		memcpy(str.data, src.data, src.length);
+		return s;
+	} else {
+		return gInNullStr;
+	}
+}
+
 InStr in_str_copy(InStr dst, InStr src, size_t len)
 {
 	IN_ASSERT(dst.mutable);
@@ -104,6 +119,12 @@ InStr in_str_copy_from_view(InStr dst, InStrView v)
 	InStr s = in_str_copy(dst, *v.str, v.length);
 	v.str->data -= v.start;
 	return s;
+}
+
+InStr in_str_copy_literal(InStr dst, char* data)
+{
+	InStr src = in_str_from_literal(data);
+	return in_str_copy(dst, src, src.length);
 }
 
 InStr in_str_pop_at(InStr* str, char* at)

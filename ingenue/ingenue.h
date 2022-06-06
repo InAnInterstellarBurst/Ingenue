@@ -52,8 +52,11 @@ void in_str_free(InStr str);
 bool in_str_isnull(InStr s);
 void in_str_puts(InStr str, FILE* stream);
 void in_str_putv(InStrView v, FILE* stream);
+
+InStr in_str_set_literal(InStr str, char* data);
 InStr in_str_copy(InStr dst, InStr src, size_t len);
 InStr in_str_copy_from_view(InStr dst, InStrView v);
+InStr in_str_copy_literal(InStr dst, char* data);
 
 char* in_str_alloc_cstr(InStr str);
 InStr in_str_pop_at(InStr* str, char* at);
