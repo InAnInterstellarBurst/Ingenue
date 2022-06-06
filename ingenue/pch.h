@@ -8,10 +8,7 @@
 
 #pragma once
 
-#include <stdio.h>
+#include "ingenue.h"
+
 #include <string.h>
-#include <assert.h>
-#include <stdarg.h>
 #include <stdlib.h>
-
-

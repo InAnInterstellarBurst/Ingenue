@@ -4,8 +4,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+if(WIN32)
+	set(OS_SRC win32.c)
+else()
+	set(OS_SRC)
+endif()
+
 set(SRCS
-	pch.h
+	pch.h ingenue.h
+	str.c
+	${OS_SRC}
 	.licenseheader
 )
 
