@@ -16,9 +16,11 @@ int in_main(int argc, char** argv)
 
 	InStrRangedView v = in_str_subview_between(s, ' ');
 	while(!in_str_isnull(v.snipped.str)) {
-		in_str_putv(v.snipped, stdout);
+		InStr vs = in_str_alloc_from_view(v.snipped);
+		in_str_puts(vs, stdout);
 		puts("");
 		v = in_str_subview_between_v(v.full, ' ');
+		in_str_free(vs);
 	}
 
 	return 0;

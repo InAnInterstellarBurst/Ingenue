@@ -52,6 +52,7 @@ static InStr gInNullStr = { 0 };
 
 InStr in_str_alloc(size_t capacity);
 InStr in_str_alloc_from_literal(char* literal);
+InStr in_str_alloc_from_view(InStrView v);
 InStr in_str_emplace_into(size_t capacity, void* mem);
 InStr in_str_immut_from_literal(char* literal);
 void in_str_free(InStr str);

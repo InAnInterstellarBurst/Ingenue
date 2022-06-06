@@ -27,6 +27,21 @@ InStr in_str_alloc_from_literal(char* literal)
 	return str;
 }
 
+InStr in_str_alloc_from_view(InStrView v)
+{
+	InStr s = { 0 };
+	s.length    = v.length;
+	s.mutable   = true;
+	s.ownMemory = true;
+	s.capacity  = v.length;
+	s.data      = malloc(v.length);
+
+	if(s.data != NULL) {
+		memcpy(s.data, &v.str.data[v.start], v.length);
+	}
+	return s;
+}
+
 InStr in_str_immut_from_literal(char* literal)
 {
 	InStr s = { 0 };
@@ -37,6 +52,7 @@ InStr in_str_immut_from_literal(char* literal)
 	s.data      = literal;
 	return s;
 }
+
 
 InStr in_str_emplace_into(size_t capacity, void* mem)
 {
