@@ -10,18 +10,8 @@
 
 int in_main(int argc, char** argv)
 {
-	InStr s = in_str_immut_from_literal(" HI HI HE LLO !!! ");
-	in_str_puts(s, stdout);
-	puts("");
-
-	InStrRangedView v = in_str_subview_between(s, ' ');
-	while(!in_str_isnull(v.snipped.str)) {
-		InStr vs = in_str_alloc_from_view(v.snipped);
-		in_str_puts(vs, stdout);
-		puts("");
-		v = in_str_subview_between_v(v.full, ' ');
-		in_str_free(vs);
-	}
+	InStr test = in_str_immut_from_literal("{Hello} this is {a} {rigerous t{est}}");
+	in_str_format(test);
 
 	return 0;
 }

@@ -70,5 +70,7 @@ char* in_str_alloc_cstr(InStr str);
 InStr in_str_pop_at(InStr str, char from);
 InStrView in_str_subview_at_first(InStr str, char from);
 InStrView in_str_subview_at_first_v(InStrView v, char from);
-InStrRangedView in_str_subview_between(InStr s, char marker);
-InStrRangedView in_str_subview_between_v(InStrView v, char marker);
+InStrRangedView in_str_subview_between(InStr s, char open, char close);
+InStrRangedView in_str_subview_between_v(InStrView v, char open, char close);
+
+InStr in_str_format(InStr fmt, ...);

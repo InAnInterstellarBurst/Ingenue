@@ -7,6 +7,7 @@
 */
 
 #include "pch.h"
+#include <stdarg.h>
 
 InStr in_str_alloc(size_t capacity)
 {
@@ -170,19 +171,15 @@ InStrView in_str_subview_at_first_v(InStrView v, char from)
 	return in_str_subview_at_first(offstr, from);
 }
 
-InStrRangedView in_str_subview_between(InStr s, char marker)
+InStrRangedView in_str_subview_between(InStr s, char open, char close)
 {
-	InStrView first = in_str_subview_at_first(s, marker);
+	InStrRangedView r = { 0 };
+	InStrView first = in_str_subview_at_first(s, open);
 	if(in_str_isnull(first.str)) {
 		return (InStrRangedView){ 0 };
 	}
-	return in_str_subview_between_v(first, marker);
-}
 
-InStrRangedView in_str_subview_between_v(InStrView first, char marker)
-{
-	InStrRangedView r = { 0 };
-	InStrView second = in_str_subview_at_first_v(first, marker);
+	InStrView second = in_str_subview_at_first_v(first, close);
 	if(in_str_isnull(second.str)) {
 		return r;
 	}
@@ -191,4 +188,36 @@ InStrRangedView in_str_subview_between_v(InStrView first, char marker)
 	r.snipped = first;
 	r.full = second;
 	return r;
+}
+
+InStrRangedView in_str_subview_between_v(InStrView v, char open, char close)
+{
+
+	InStrRangedView r = { 0 };
+	InStrView first = in_str_subview_at_first_v(v, open);
+	if(in_str_isnull(first.str)) {
+		return r;
+	}
+
+	InStrView second = in_str_subview_at_first_v(first, close);
+	if(in_str_isnull(second.str)) {
+		return r;
+	}
+
+	first.length -= second.length + 1;
+	r.snipped = first;
+	r.full = second;
+	return r;
+}
+
+InStr in_str_format(InStr fmt, ...)
+{
+	InStrRangedView sub = in_str_subview_between(fmt, '{', '}');
+	while(!in_str_isnull(sub.snipped.str)) {
+		in_str_putv(sub.snipped, stdout);
+		puts("");
+		sub = in_str_subview_between_v(sub.full, '{', '}');
+	}
+
+	return gInNullStr;
 }
