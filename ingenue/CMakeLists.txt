@@ -7,7 +7,7 @@
 if(WIN32)
 	set(OS_SRC win32.c)
 else()
-	set(OS_SRC)
+	set(OS_SRC linux.c)
 endif()
 
 set(SRCS

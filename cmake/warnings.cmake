@@ -35,6 +35,7 @@ function(set_project_warnings project_name)
 
 	set(CLANG_WARNINGS
 		-Wno-unused-parameter
+		-Wno-unused-variable
 		-Werror
 
 		-Wall

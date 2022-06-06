@@ -16,15 +16,18 @@ InStr in_str_alloc(size_t capacity)
 	s.ownMemory = true;
 	s.capacity  = capacity;
 	s.data      = malloc(capacity);
-	
-	if(s.data == NULL) {
-		return gInNullStr;
-	}
-
 	return s;
 }
 
-InStr in_str_from_literal(char* literal)
+InStr in_str_alloc_from_literal(char* literal)
+{
+	size_t len = strlen(literal);
+	InStr str = in_str_alloc(len);
+	str = in_str_set_from_literal(str, literal);
+	return str;
+}
+
+InStr in_str_immut_from_literal(char* literal)
 {
 	InStr s = { 0 };
 	s.length    = strlen(literal);
@@ -65,7 +68,7 @@ char* in_str_alloc_cstr(InStr str)
 // C++ eat ur heart out
 bool in_str_isnull(InStr s)
 {
-	return (s.capacity == 0 && s.data == NULL);
+	return (s.data == NULL);
 }
 
 void in_str_puts(InStr str, FILE* stream)
@@ -75,13 +78,13 @@ void in_str_puts(InStr str, FILE* stream)
 
 void in_str_putv(InStrView v, FILE* stream)
 {
-	fwrite(&v.str->data[v.start], sizeof(char), v.length, stream);
+	fwrite(&v.str.data[v.start], sizeof(char), v.length, stream);
 }
 
-InStr in_str_set_literal(InStr str, char* data)
+InStr in_str_set_from_literal(InStr str, char* data)
 {
 	IN_ASSERT(str.mutable);
-	InStr src = in_str_from_literal(data);
+	InStr src = in_str_immut_from_literal(data);
 	if(str.capacity >= src.length) {
 		InStr s = str;
 		s.length = src.length;
@@ -115,24 +118,61 @@ InStr in_str_copy(InStr dst, InStr src, size_t len)
 
 InStr in_str_copy_from_view(InStr dst, InStrView v)
 {
-	v.str->data += v.start; // Jesus fuck
-	InStr s = in_str_copy(dst, *v.str, v.length);
-	v.str->data -= v.start;
+	v.str.data += v.start; // Jesus fuck
+	InStr s = in_str_copy(dst, v.str, v.length);
+	v.str.data -= v.start;
 	return s;
 }
 
 InStr in_str_copy_literal(InStr dst, char* data)
 {
-	InStr src = in_str_from_literal(data);
+	InStr src = in_str_immut_from_literal(data);
 	return in_str_copy(dst, src, src.length);
 }
 
-InStr in_str_pop_at(InStr* str, char* at)
+InStrView in_str_subview_at_first(InStr str, char from)
 {
-	return (InStr){ 0 };
+	InStrView v = { 0 };
+	v.str = str;
+	for(size_t s = 0; s < str.length; s++) {
+		if(str.data[s] == from) {
+			v.start = s + 1;
+			v.length = str.length - v.start;
+			return v;
+		}
+	}
+
+	v.str = gInNullStr;
+	return v;
 }
 
-InStrView in_str_subview(InStr* str, char* from)
+InStrView in_str_subview_at_first_v(InStrView v, char from)
 {
-	return (InStrView){ 0 };
+	char* dataoff = &v.str.data[v.start];
+	InStr offstr = in_str_emplace_into(v.length, dataoff);
+	offstr.length = v.length;
+	return in_str_subview_at_first(offstr, from);
+}
+
+InStrRangedView in_str_subview_between(InStr s, char marker)
+{
+	InStrView first = in_str_subview_at_first(s, marker);
+	if(in_str_isnull(first.str)) {
+		return (InStrRangedView){ 0 };
+	}
+	return in_str_subview_between_v(first, marker);
+}
+
+InStrRangedView in_str_subview_between_v(InStrView first, char marker)
+{
+	InStrRangedView r = { 0 };
+	InStrView second = in_str_subview_at_first_v(first, marker);
+	if(in_str_isnull(second.str)) {
+		return r;
+	}
+
+	first.length -= second.length + 1;
+	r.snipped = first;
+	r.full = second;
+	return r;
 }

@@ -39,25 +39,35 @@ typedef struct
 {
 	size_t start;
 	size_t length;
-	InStr* str;
+	InStr str;
 } InStrView;
+
+typedef struct
+{
+	InStrView full;
+	InStrView snipped;
+} InStrRangedView;
 
 static InStr gInNullStr = { 0 };
 
 InStr in_str_alloc(size_t capacity);
-InStr in_str_from_literal(char* literal);
+InStr in_str_alloc_from_literal(char* literal);
 InStr in_str_emplace_into(size_t capacity, void* mem);
+InStr in_str_immut_from_literal(char* literal);
 void in_str_free(InStr str);
 
 bool in_str_isnull(InStr s);
 void in_str_puts(InStr str, FILE* stream);
 void in_str_putv(InStrView v, FILE* stream);
 
-InStr in_str_set_literal(InStr str, char* data);
+InStr in_str_set_from_literal(InStr str, char* data);
 InStr in_str_copy(InStr dst, InStr src, size_t len);
 InStr in_str_copy_from_view(InStr dst, InStrView v);
 InStr in_str_copy_literal(InStr dst, char* data);
-
 char* in_str_alloc_cstr(InStr str);
-InStr in_str_pop_at(InStr* str, char* at);
-InStrView in_str_subview(InStr* str, char* from);
+
+InStr in_str_pop_at(InStr str, char from);
+InStrView in_str_subview_at_first(InStr str, char from);
+InStrView in_str_subview_at_first_v(InStrView v, char from);
+InStrRangedView in_str_subview_between(InStr s, char marker);
+InStrRangedView in_str_subview_between_v(InStrView v, char marker);

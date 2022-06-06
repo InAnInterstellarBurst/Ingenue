@@ -20,7 +20,7 @@ target_compile_features(project_settings INTERFACE c_std_11)
 target_compile_definitions(project_settings INTERFACE IN_DEBUG=$<CONFIG:DEBUG> _CRT_SECURE_NO_WARNINGS)
 if(WIN32)
     target_compile_definitions(project_settings INTERFACE IN_DESKTOP=1 IN_WIN32=1 IN_LINUX=0)
-elseif(LINUX)
+elseif(UNIX)
     target_compile_definitions(project_settings INTERFACE IN_DESKTOP=1 IN_LINUX=1 IN_WIN32=0)
 endif()
 

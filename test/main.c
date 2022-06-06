@@ -10,23 +10,16 @@
 
 int in_main(int argc, char** argv)
 {
-	InStr s = in_str_from_literal("Hello");
-	InStr s1 = in_str_alloc(10);
-	s1 = in_str_copy(s1, s, 0);
-	
-	InStrView v = { 0 };
-	v.length = 3;
-	v.start = 2;
-	v.str = &s;
-	s1 = in_str_copy_from_view(s1, v);
-
-	in_str_puts(s1, stdout);
+	InStr s = in_str_immut_from_literal(" HI HI HE LLO !!! ");
+	in_str_puts(s, stdout);
 	puts("");
 
-	in_str_set_literal(s1, "Hello!");
-	in_str_puts(s1, stdout);
-	puts("");
-	
-	in_str_free(s1);
+	InStrRangedView v = in_str_subview_between(s, ' ');
+	while(!in_str_isnull(v.snipped.str)) {
+		in_str_putv(v.snipped, stdout);
+		puts("");
+		v = in_str_subview_between_v(v.full, ' ');
+	}
+
 	return 0;
 }
