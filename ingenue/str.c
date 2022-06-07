@@ -176,6 +176,24 @@ InStr in_str_copy_literal(InStr dst, char* data)
 	return in_str_copy(dst, src, src.length);
 }
 
+InStr in_str_copy_from_view_realloc(InStr dst, InStrView v)
+{
+	IN_ASSERT(dst.mutable && dst.ownMemory);
+	size_t newlen = dst.length + v.length;
+	if(dst.capacity < newlen) {
+		dst.capacity = newlen;
+		dst.data = realloc(dst.data, newlen);
+		if(dst.data == NULL) {
+			return gInNullStr;
+		}
+	}
+
+	InStr s = dst;
+	s.length = newlen;
+	memcpy(&s.data[dst.length], &v.str.data[v.start], v.length);
+	return s;
+}
+
 InStrView in_str_subview_at_first(InStr str, char from)
 {
 	InStrView v = { 0 };
@@ -222,7 +240,7 @@ InStrRangedView in_str_subview_between(InStr s, char open, char close)
 
 	first.length -= second.length + 1;
 	r.snipped = first;
-	r.full = second;
+	r.remaining = second;
 	return r;
 }
 
@@ -242,7 +260,7 @@ InStrRangedView in_str_subview_between_v(InStrView v, char open, char close)
 
 	first.length -= second.length + 1;
 	r.snipped = first;
-	r.full = second;
+	r.remaining = second;
 	return r;
 }
 
@@ -256,26 +274,21 @@ InStr in_str_format(InStr fmt, ...)
 
 	while(!in_str_isnull(sub.snipped.str)) {
 		InStrView skipped = last;
-		skipped.start = last.start + last.length;
-		skipped.length = sub.snipped.start - skipped.start;
-
-		in_str_putv(skipped, stdout);
-		puts("^^");
-
+		skipped.start = last.start + last.length + 1;
+		skipped.length = sub.snipped.start - skipped.start - 1;
+		result = in_str_copy_from_view_realloc(result, skipped);
+		result = in_str_copy_realloc(result, fmt_translate(sub.snipped), 0);
 		last = sub.snipped;
-
-		in_str_putv(sub.snipped, stdout);
-		puts("--");
-
-		sub = in_str_subview_between_v(sub.full, '{', '}');
+		sub = in_str_subview_between_v(sub.remaining, '{', '}');
 	}
 
 	InStrView rem = last;
-	rem.start = last.start + last.length;
+	rem.start = last.start + last.length + 1;
 	rem.length = fmt.length - rem.start;
-	in_str_putv(rem, stdout);
-	puts("--");
+	result = in_str_copy_from_view_realloc(result, rem);
 
+	in_str_puts(result, stdout);
+	puts("");
 
 	// Useless bit :)
 	fmt_translate(last);

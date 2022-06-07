@@ -9,6 +9,7 @@ gcc
 
 -Wall
 -Wextra
+-Wno-unused-variable
 -Wno-unused-parameter
 -Werror
 
