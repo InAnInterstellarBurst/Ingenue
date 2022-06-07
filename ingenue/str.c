@@ -266,7 +266,7 @@ InStrRangedView in_str_subview_between_v(InStrView v, char open, char close)
 
 InStr in_str_format(InStr fmt, ...)
 {
-	InStr result = in_str_alloc(fmt.capacity * 2); // A really rough estimate
+	InStr result = in_str_alloc(fmt.capacity);
 	InStrView last = { .str = fmt };
 	last.start = 0;
 	last.length = 0;
@@ -274,8 +274,13 @@ InStr in_str_format(InStr fmt, ...)
 
 	while(!in_str_isnull(sub.snipped.str)) {
 		InStrView skipped = last;
-		skipped.start = last.start + last.length + 1;
+		skipped.start = last.start + last.length;
 		skipped.length = sub.snipped.start - skipped.start - 1;
+		if(skipped.str.data[skipped.start] == '}') {
+			skipped.start += 1;
+			skipped.length -= 1;
+		}
+
 		result = in_str_copy_from_view_realloc(result, skipped);
 		result = in_str_copy_realloc(result, fmt_translate(sub.snipped), 0);
 		last = sub.snipped;
@@ -286,11 +291,5 @@ InStr in_str_format(InStr fmt, ...)
 	rem.start = last.start + last.length + 1;
 	rem.length = fmt.length - rem.start;
 	result = in_str_copy_from_view_realloc(result, rem);
-
-	in_str_puts(result, stdout);
-	puts("");
-
-	// Useless bit :)
-	fmt_translate(last);
-	return gInNullStr;
+	return result;
 }
