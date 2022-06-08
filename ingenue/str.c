@@ -266,7 +266,7 @@ InStrRangedView in_str_subview_between_v(InStrView v, char open, char close)
 
 InStr in_str_format(InStr fmt, ...)
 {
-	InStr result = in_str_alloc(fmt.capacity);
+	InStr result = in_str_alloc(fmt.capacity * 2);
 	InStrView last = { .str = fmt };
 	last.start = 0;
 	last.length = 0;
