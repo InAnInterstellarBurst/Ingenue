@@ -9,10 +9,7 @@
 #include "pch.h"
 #include <stdarg.h>
 
-static InStr fmt_translate(InStrView seq)
-{
-	return in_str_immut_from_literal("AAAAiaaaaaaaaaaaaaaaaaaaa");
-}
+extern InStr fmt_translate(InStrView seq);
 
 
 InStr in_str_alloc(size_t capacity)
@@ -92,6 +89,11 @@ char* in_str_alloc_cstr(InStr str)
 bool in_str_isnull(InStr s)
 {
 	return (s.data == NULL);
+}
+
+bool in_str_eq(InStr a, InStr b)
+{
+	return (strncmp(a.data, b.data, min(a.length, b.length)) == 0);
 }
 
 void in_str_puts(InStr str, FILE* stream)

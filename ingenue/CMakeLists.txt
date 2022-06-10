@@ -12,7 +12,7 @@ endif()
 
 set(SRCS
 	pch.h ingenue.h
-	str.c
+	str.c fmt.c
 	${OS_SRC}
 	.licenseheader
 )

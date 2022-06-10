@@ -25,7 +25,11 @@
 
 extern int in_main(int argc, char** argv);
 
-
+/**
+* ============================================
+*  Strings
+* ============================================
+*/
 typedef struct
 {
 	size_t length;
@@ -58,6 +62,7 @@ InStr in_str_immut_from_literal(char* literal);
 void in_str_free(InStr str);
 
 bool in_str_isnull(InStr s);
+bool in_str_eq(InStr a, InStr b);
 void in_str_puts(InStr str, FILE* stream);
 void in_str_putv(InStrView v, FILE* stream);
 
@@ -69,10 +74,16 @@ InStr in_str_copy_literal(InStr dst, char* data);
 InStr in_str_copy_realloc(InStr dst, InStr src, size_t len);
 char* in_str_alloc_cstr(InStr str);
 
-InStr in_str_pop_at(InStr str, char from);
 InStrView in_str_subview_at_first(InStr str, char from);
 InStrView in_str_subview_at_first_v(InStrView v, char from);
 InStrRangedView in_str_subview_between(InStr s, char open, char close);
 InStrRangedView in_str_subview_between_v(InStrView v, char open, char close);
 
 InStr in_str_format(InStr fmt, ...);
+InStr in_str_format_va(InStr fmt, va_list args);
+
+
+typedef InStr(*InFmtTranslationProc)(InStrView v);
+
+void in_fmt_print(FILE* stream, InStr fmt, ...);
+bool in_fmt_add_format(InStr k, InFmtTranslationProc v);
