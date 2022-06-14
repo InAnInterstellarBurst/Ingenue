@@ -45,8 +45,13 @@ InStr in_str_alloc_from_view(InStrView v)
 	s.mutable   = true;
 	s.ownMemory = true;
 	s.capacity  = v.length;
-	s.allocator = v.str.allocator;
-	s.data      = s.allocator->memalloc(v.length);
+	if(v.str.allocator != NULL) {
+		s.allocator = v.str.allocator;
+	} else {
+		s.allocator = gInDefaultMallocator;
+	}
+
+	s.data = s.allocator->memalloc(v.length);
 
 	if(s.data != NULL) {
 		memcpy(s.data, &v.str.data[v.start], v.length);
@@ -289,18 +294,18 @@ InStrRangedView in_str_subview_between_v(InStrView v, char open, char close)
 	return r;
 }
 
-InStr in_str_format(InStr fmt, ...)
+InStr in_str_format(InStr fmt, InAllocator* alloc, ...)
 {
 	va_list va;
-	va_start(va, fmt);
-	InStr s = in_str_format_va(fmt, va);
+	va_start(va, alloc);
+	InStr s = in_str_format_va(fmt, alloc, va);
 	va_end(va);
 	return s;
 }
 
-InStr in_str_format_va(InStr fmt, va_list va)
+InStr in_str_format_va(InStr fmt, InAllocator* alloc, va_list va)
 {
-	InStr result = in_str_alloc(fmt.capacity * 2, fmt.allocator);
+	InStr result = in_str_alloc(fmt.capacity * 2, alloc);
 	InStrView last = { .str = fmt };
 	last.start = 0;
 	last.length = 0;

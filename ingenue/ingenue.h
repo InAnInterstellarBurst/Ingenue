@@ -102,12 +102,12 @@ InStrView in_str_subview_at_first_v(InStrView v, char from);
 InStrRangedView in_str_subview_between(InStr s, char open, char close);
 InStrRangedView in_str_subview_between_v(InStrView v, char open, char close);
 
-InStr in_str_format(InStr fmt, ...);
-InStr in_str_format_va(InStr fmt, va_list args);
+InStr in_str_format(InStr fmt, InAllocator* alloc, ...);
+InStr in_str_format_va(InStr fmt, InAllocator* alloc, va_list args);
 
 
 typedef InStr(*InFmtTranslationProc)(va_list* va);
 
 void in_fmt_init(void);
-void in_fmt_print(FILE* stream, InStr fmt, ...);
+void in_fmt_print(FILE* stream, InAllocator* alloc, InStr fmt, ...);
 bool in_fmt_add_format(InStr k, InFmtTranslationProc v);

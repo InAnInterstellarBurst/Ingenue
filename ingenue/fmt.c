@@ -31,11 +31,11 @@ InStr fmt_translate(InStrView v, va_list* va)
 	return in_str_immut_from_literal("");
 }
 
-void in_fmt_print(FILE* stream, InStr fmt, ...)
+void in_fmt_print(FILE* stream, InAllocator* alloc, InStr fmt, ...)
 {
 	va_list l;
 	va_start(l, fmt);
-	InStr s = in_str_format_va(fmt, l);
+	InStr s = in_str_format_va(fmt, alloc, l);
 	in_str_puts(s, stream);
 	in_str_free(s);
 	va_end(l);
