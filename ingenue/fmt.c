@@ -20,11 +20,15 @@ typedef struct
 static uint16_t s_AddedFormats = 0;
 static FmtEntry s_FormatTable[IN_MAX_FMTS];
 
-InStr fmt_translate(InStrView v)
+InStr fmt_translate(InStrView v, void* d)
 {
 	for(uint16_t i = 0; i < s_AddedFormats; i++) {
-		if(s_FormatTable[i].k == v)
+		if(in_str_eq_strview(s_FormatTable[i].k, v)) {
+			return s_FormatTable[i].p(d);
+		}
 	}
+
+	return in_str_alloc_from_literal("");
 }
 
 void in_fmt_print(FILE* stream, InStr fmt, ...)
@@ -46,4 +50,40 @@ bool in_fmt_add_format(InStr k, InFmtTranslationProc v)
 	}
 
 	return false;
+}
+
+
+InStr fmt_str(void* d)
+{
+	InStr* s = (InStr*)d;
+	return *s;
+}
+
+InStr fmt_cstr(void* d)
+{
+	return in_str_immut_from_literal(d);
+}
+
+InStr fmt_strview(void* d)
+{
+	InStrView* v = (InStrView*)d;
+	return in_str_alloc_from_view(*v);
+}
+
+InStr fmt_bool(void* d)
+{
+	bool* b = (bool*)d;
+	if(*b) {
+		return in_str_immut_from_literal("true");
+	} else {
+		return in_str_immut_from_literal("false");
+	}
+}
+
+void in_fmt_init(void)
+{
+	in_fmt_add_format(in_str_immut_from_literal("b"), fmt_bool);
+	in_fmt_add_format(in_str_immut_from_literal("str"), fmt_str);
+	in_fmt_add_format(in_str_immut_from_literal("cstr"), fmt_cstr);
+	in_fmt_add_format(in_str_immut_from_literal("str_view"), fmt_strview);
 }

@@ -9,7 +9,7 @@
 #include "pch.h"
 #include <stdarg.h>
 
-extern InStr fmt_translate(InStrView seq);
+extern InStr fmt_translate(InStrView seq, void* d);
 
 
 InStr in_str_alloc(size_t capacity)
@@ -93,7 +93,13 @@ bool in_str_isnull(InStr s)
 
 bool in_str_eq(InStr a, InStr b)
 {
-	return (strncmp(a.data, b.data, min(a.length, b.length)) == 0);
+	return (strncmp(a.data, b.data, in_min(a.length, b.length)) == 0);
+}
+
+bool in_str_eq_strview(InStr a, InStrView b)
+{
+	char* bview = &b.str.data[b.start];
+	return (strncmp(a.data, bview, in_min(a.length, b.length)) == 0);
 }
 
 void in_str_puts(InStr str, FILE* stream)
@@ -268,6 +274,15 @@ InStrRangedView in_str_subview_between_v(InStrView v, char open, char close)
 
 InStr in_str_format(InStr fmt, ...)
 {
+	va_list va;
+	va_start(va, fmt);
+	InStr s = in_str_format_va(fmt, va);
+	va_end(va);
+	return s;
+}
+
+InStr in_str_format_va(InStr fmt, va_list va)
+{
 	InStr result = in_str_alloc(fmt.capacity * 2);
 	InStrView last = { .str = fmt };
 	last.start = 0;
@@ -283,8 +298,11 @@ InStr in_str_format(InStr fmt, ...)
 			skipped.length -= 1;
 		}
 
+		InStr fmtTranslate = fmt_translate(sub.snipped, va_arg(va, void*));
 		result = in_str_copy_from_view_realloc(result, skipped);
-		result = in_str_copy_realloc(result, fmt_translate(sub.snipped), 0);
+		result = in_str_copy_realloc(result, fmtTranslate, 0);
+		in_str_free(fmtTranslate);
+
 		last = sub.snipped;
 		sub = in_str_subview_between_v(sub.remaining, '{', '}');
 	}

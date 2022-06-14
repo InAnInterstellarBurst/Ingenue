@@ -10,8 +10,9 @@
 
 int in_main(int argc, char** argv)
 {
-	InStr test = in_str_immut_from_literal("This {a} is {a} a {a} test {}");
-	InStr fmt = in_str_format(test);
+	in_fmt_init();
+	InStr test = in_str_immut_from_literal("This {b} is {b} a {b} test {b}");
+	InStr fmt = in_str_format(test, true, true, false, true);
 	in_str_puts(fmt, stdout);
 	puts("");
 	in_str_free(fmt);

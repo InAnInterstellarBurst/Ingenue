@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define in_min(x, y) ((x < y) ? x : y)
+
 #if IN_DEBUG
 	#if IN_WIN32
 		#define IN_ASSERT(x) if(!x) { __debugbreak(); }
@@ -24,6 +26,7 @@
 #endif
 
 extern int in_main(int argc, char** argv);
+
 
 /**
 * ============================================
@@ -63,6 +66,8 @@ void in_str_free(InStr str);
 
 bool in_str_isnull(InStr s);
 bool in_str_eq(InStr a, InStr b);
+bool in_str_eq_strview(InStr a, InStrView b);
+
 void in_str_puts(InStr str, FILE* stream);
 void in_str_putv(InStrView v, FILE* stream);
 
@@ -83,7 +88,8 @@ InStr in_str_format(InStr fmt, ...);
 InStr in_str_format_va(InStr fmt, va_list args);
 
 
-typedef InStr(*InFmtTranslationProc)(InStrView v);
+typedef InStr(*InFmtTranslationProc)(void* d);
 
+void in_fmt_init(void);
 void in_fmt_print(FILE* stream, InStr fmt, ...);
 bool in_fmt_add_format(InStr k, InFmtTranslationProc v);
