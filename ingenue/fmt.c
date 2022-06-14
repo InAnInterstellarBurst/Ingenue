@@ -20,15 +20,15 @@ typedef struct
 static uint16_t s_AddedFormats = 0;
 static FmtEntry s_FormatTable[IN_MAX_FMTS];
 
-InStr fmt_translate(InStrView v, void* d)
+InStr fmt_translate(InStrView v, va_list* va)
 {
 	for(uint16_t i = 0; i < s_AddedFormats; i++) {
 		if(in_str_eq_strview(s_FormatTable[i].k, v)) {
-			return s_FormatTable[i].p(d);
+			return s_FormatTable[i].p(va);
 		}
 	}
 
-	return in_str_alloc_from_literal("");
+	return in_str_immut_from_literal("");
 }
 
 void in_fmt_print(FILE* stream, InStr fmt, ...)
@@ -53,27 +53,28 @@ bool in_fmt_add_format(InStr k, InFmtTranslationProc v)
 }
 
 
-InStr fmt_str(void* d)
+InStr fmt_str(va_list* va)
 {
-	InStr* s = (InStr*)d;
-	return *s;
+	InStr old = va_arg(*va, InStr);
+	InStr s = in_str_alloc(old.length, old.allocator);
+	return in_str_copy(s, old, 0);
 }
 
-InStr fmt_cstr(void* d)
+InStr fmt_cstr(va_list* va)
 {
-	return in_str_immut_from_literal(d);
+	return in_str_immut_from_literal(va_arg(*va, char*));
 }
 
-InStr fmt_strview(void* d)
+InStr fmt_strview(va_list* va)
 {
-	InStrView* v = (InStrView*)d;
-	return in_str_alloc_from_view(*v);
+	InStrView v = va_arg(*va, InStrView);
+	return in_str_alloc_from_view(v);
 }
 
-InStr fmt_bool(void* d)
+InStr fmt_bool(va_list* va)
 {
-	bool* b = (bool*)d;
-	if(*b) {
+	bool b = va_arg(*va, bool);
+	if(b) {
 		return in_str_immut_from_literal("true");
 	} else {
 		return in_str_immut_from_literal("false");

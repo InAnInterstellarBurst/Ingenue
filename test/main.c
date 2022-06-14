@@ -11,10 +11,20 @@
 int in_main(int argc, char** argv)
 {
 	in_fmt_init();
-	InStr test = in_str_immut_from_literal("This {b} is {b} a {b} test {b}");
-	InStr fmt = in_str_format(test, true, true, false, true);
+
+	InStr s = in_str_alloc(50, NULL);
+	s = in_str_copy_literal(s, "Tesssssssssssssssssssst");
+	InStrView v = {
+		.length = 2,
+		.start = 3,
+		.str = s
+	};
+
+	InStr test = in_str_immut_from_literal("This {cstr} is {b} a {str} test {str_view}\n");
+	InStr fmt = in_str_format(test, "HELLO!", true, s, v);
 	in_str_puts(fmt, stdout);
-	puts("");
+	
 	in_str_free(fmt);
+	in_str_free(s);
 	return 0;
 }

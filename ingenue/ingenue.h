@@ -27,6 +27,23 @@
 
 extern int in_main(int argc, char** argv);
 
+/**
+* ============================================
+*  Allocation
+* ============================================
+*/
+typedef void*(*InAllocProc)(size_t);
+typedef void*(*InReallocProc)(void*, size_t);
+typedef void(*InFreeProc)(void*);
+
+typedef struct  
+{
+	InAllocProc memalloc;
+	InReallocProc memrealloc;
+	InFreeProc memfree;
+} InAllocator;
+
+extern InAllocator* gInDefaultMallocator;
 
 /**
 * ============================================
@@ -40,6 +57,7 @@ typedef struct
 	bool mutable;
 	bool ownMemory;
 	char* data;
+	InAllocator* allocator;
 } InStr;
 
 typedef struct  
@@ -57,8 +75,8 @@ typedef struct
 
 static InStr gInNullStr = { 0 };
 
-InStr in_str_alloc(size_t capacity);
-InStr in_str_alloc_from_literal(char* literal);
+InStr in_str_alloc(size_t capacity, InAllocator* allocator);
+InStr in_str_alloc_from_literal(char* literal, InAllocator* alloc);
 InStr in_str_alloc_from_view(InStrView v);
 InStr in_str_emplace_into(size_t capacity, void* mem);
 InStr in_str_immut_from_literal(char* literal);
@@ -88,7 +106,7 @@ InStr in_str_format(InStr fmt, ...);
 InStr in_str_format_va(InStr fmt, va_list args);
 
 
-typedef InStr(*InFmtTranslationProc)(void* d);
+typedef InStr(*InFmtTranslationProc)(va_list* va);
 
 void in_fmt_init(void);
 void in_fmt_print(FILE* stream, InStr fmt, ...);

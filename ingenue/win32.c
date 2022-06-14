@@ -8,6 +8,7 @@
 
 #include "pch.h"
 #include <Windows.h>
+#include <crtdbg.h>
 
 void open_console(void)
 {
@@ -25,8 +26,16 @@ void open_console(void)
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 #if IN_DEBUG
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	open_console();
 #endif
+
+	gInDefaultMallocator = &(InAllocator){
+		.memalloc = malloc,
+		.memrealloc = realloc,
+		.memfree = free,
+	};
+
 	int r = in_main(__argc, __argv);
 #if IN_DEBUG
 	system("Pause");

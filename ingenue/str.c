@@ -9,24 +9,31 @@
 #include "pch.h"
 #include <stdarg.h>
 
-extern InStr fmt_translate(InStrView seq, void* d);
+InAllocator* gInDefaultMallocator = NULL;
+extern InStr fmt_translate(InStrView seq, va_list* va);
 
 
-InStr in_str_alloc(size_t capacity)
+InStr in_str_alloc(size_t capacity, InAllocator* allocator)
 {
 	InStr s = { 0 };
 	s.length    = 0;
 	s.mutable   = true;
 	s.ownMemory = true;
 	s.capacity  = capacity;
-	s.data      = malloc(capacity);
+	if(allocator != NULL) {
+		s.allocator = allocator;
+	} else {
+		s.allocator = gInDefaultMallocator;
+	}
+
+	s.data = s.allocator->memalloc(capacity);
 	return s;
 }
 
-InStr in_str_alloc_from_literal(char* literal)
+InStr in_str_alloc_from_literal(char* literal, InAllocator* alloc)
 {
 	size_t len = strlen(literal);
-	InStr str = in_str_alloc(len);
+	InStr str = in_str_alloc(len, alloc);
 	str = in_str_set_from_literal(str, literal);
 	return str;
 }
@@ -38,7 +45,8 @@ InStr in_str_alloc_from_view(InStrView v)
 	s.mutable   = true;
 	s.ownMemory = true;
 	s.capacity  = v.length;
-	s.data      = malloc(v.length);
+	s.allocator = v.str.allocator;
+	s.data      = s.allocator->memalloc(v.length);
 
 	if(s.data != NULL) {
 		memcpy(s.data, &v.str.data[v.start], v.length);
@@ -72,15 +80,16 @@ InStr in_str_emplace_into(size_t capacity, void* mem)
 void in_str_free(InStr str)
 {
 	if(str.ownMemory) {
-		free(str.data);
+		str.allocator->memfree(str.data);
 	}
 }
 
 char* in_str_alloc_cstr(InStr str)
 {
-	char* cstr = calloc(str.length + 1, sizeof(char));
+	char* cstr = str.allocator->memalloc((str.length + 1) * sizeof(char));
 	if(cstr != NULL) {
 		memcpy(cstr, str.data, str.length);
+		cstr[str.length] = 0;
 	}
 	return cstr;
 }
@@ -93,13 +102,15 @@ bool in_str_isnull(InStr s)
 
 bool in_str_eq(InStr a, InStr b)
 {
-	return (strncmp(a.data, b.data, in_min(a.length, b.length)) == 0);
+	size_t cmp = strncmp(a.data, b.data, in_min(a.length, b.length));
+	return (a.length == b.length) && (cmp == 0);
 }
 
 bool in_str_eq_strview(InStr a, InStrView b)
 {
 	char* bview = &b.str.data[b.start];
-	return (strncmp(a.data, bview, in_min(a.length, b.length)) == 0);
+	size_t cmp = strncmp(a.data, bview, in_min(a.length, b.length));
+	return (a.length == b.length) && (cmp == 0);
 }
 
 void in_str_puts(InStr str, FILE* stream)
@@ -147,6 +158,9 @@ InStr in_str_copy(InStr dst, InStr src, size_t len)
 	}
 }
 
+/**
+ * Uses dst string allocator
+ */
 InStr in_str_copy_realloc(InStr dst, InStr src, size_t len)
 {
 	IN_ASSERT(dst.mutable && dst.ownMemory);
@@ -158,7 +172,7 @@ InStr in_str_copy_realloc(InStr dst, InStr src, size_t len)
 	size_t newlen = dst.length + cpylen;
 	if(dst.capacity < newlen) {
 		dst.capacity = newlen;
-		dst.data = realloc(dst.data, newlen);
+		dst.data = dst.allocator->memrealloc(dst.data, newlen);
 		if(dst.data == NULL) {
 			return gInNullStr;
 		}
@@ -184,13 +198,16 @@ InStr in_str_copy_literal(InStr dst, char* data)
 	return in_str_copy(dst, src, src.length);
 }
 
+/**
+ * Uses dst string allocator
+ */
 InStr in_str_copy_from_view_realloc(InStr dst, InStrView v)
 {
 	IN_ASSERT(dst.mutable && dst.ownMemory);
 	size_t newlen = dst.length + v.length;
 	if(dst.capacity < newlen) {
 		dst.capacity = newlen;
-		dst.data = realloc(dst.data, newlen);
+		dst.data = dst.allocator->memrealloc(dst.data, newlen);
 		if(dst.data == NULL) {
 			return gInNullStr;
 		}
@@ -283,7 +300,7 @@ InStr in_str_format(InStr fmt, ...)
 
 InStr in_str_format_va(InStr fmt, va_list va)
 {
-	InStr result = in_str_alloc(fmt.capacity * 2);
+	InStr result = in_str_alloc(fmt.capacity * 2, fmt.allocator);
 	InStrView last = { .str = fmt };
 	last.start = 0;
 	last.length = 0;
@@ -298,7 +315,7 @@ InStr in_str_format_va(InStr fmt, va_list va)
 			skipped.length -= 1;
 		}
 
-		InStr fmtTranslate = fmt_translate(sub.snipped, va_arg(va, void*));
+		InStr fmtTranslate = fmt_translate(sub.snipped, &va);
 		result = in_str_copy_from_view_realloc(result, skipped);
 		result = in_str_copy_realloc(result, fmtTranslate, 0);
 		in_str_free(fmtTranslate);
