@@ -10,7 +10,6 @@ function(set_project_warnings project_name)
 		/wd5105 # Disable some obscure warning windows.h adds
 		/wd4100 # Disable unused param warnings
 		/wd4127 # Disable constant expression warning
-		/wd4996 # I like itoa
 
 		/W4 # Baseline reasonable warnings
 		/w14242 # 'identifier': conversion from 'type1' to 'type1', possible loss of data

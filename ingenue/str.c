@@ -10,7 +10,7 @@
 #include <stdarg.h>
 
 InAllocator* gInDefaultMallocator = NULL;
-extern InStr fmt_translate(InStrView seq, va_list* va);
+extern InStr fmt_translate(InAllocator* alloc, InStrView seq, va_list va);
 
 
 InStr in_str_alloc(size_t capacity, InAllocator* allocator)
@@ -107,14 +107,14 @@ bool in_str_isnull(InStr s)
 
 bool in_str_eq(InStr a, InStr b)
 {
-	size_t cmp = strncmp(a.data, b.data, in_min(a.length, b.length));
+	int cmp = strncmp(a.data, b.data, in_min(a.length, b.length));
 	return (a.length == b.length) && (cmp == 0);
 }
 
 bool in_str_eq_strview(InStr a, InStrView b)
 {
 	char* bview = &b.str.data[b.start];
-	size_t cmp = strncmp(a.data, bview, in_min(a.length, b.length));
+	int cmp = strncmp(a.data, bview, in_min(a.length, b.length));
 	return (a.length == b.length) && (cmp == 0);
 }
 
@@ -305,7 +305,7 @@ InStr in_str_format(InStr fmt, InAllocator* alloc, ...)
 
 InStr in_str_format_va(InStr fmt, InAllocator* alloc, va_list va)
 {
-	InStr result = in_str_alloc(fmt.capacity * 2, alloc);
+	InStr result = in_str_alloc(fmt.capacity * 4, alloc);
 	InStrView last = { .str = fmt };
 	last.start = 0;
 	last.length = 0;
@@ -320,7 +320,7 @@ InStr in_str_format_va(InStr fmt, InAllocator* alloc, va_list va)
 			skipped.length -= 1;
 		}
 
-		InStr fmtTranslate = fmt_translate(sub.snipped, &va);
+		InStr fmtTranslate = fmt_translate(alloc, sub.snipped, va);
 		result = in_str_copy_from_view_realloc(result, skipped);
 		result = in_str_copy_realloc(result, fmtTranslate, 0);
 		in_str_free(fmtTranslate);

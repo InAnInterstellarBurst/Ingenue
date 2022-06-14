@@ -10,5 +10,11 @@
 
 int main(int argc, char** argv)
 {
+	gInDefaultMallocator = &(InAllocator){
+		.memalloc = malloc,
+		.memrealloc = realloc,
+		.memfree = free,
+	};
+
 	return in_main(argc, argv);
 }

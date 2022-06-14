@@ -7,33 +7,47 @@
 */
 
 #include <ingenue/ingenue.h>
+#include <sys/time.h>
 #include <stdlib.h>
 
-void* printed_malloc(size_t s)
+uint32_t avg_custom()
 {
-	puts("Allocd!");
-	return malloc(s);
+	InStr s = in_str_immut_from_literal("TESSSSSSSSSSSSSSSSSSSSSSSSSSSt");
+	uint32_t sumdiff = 0;
+	struct timeval start, stop;
+	for(int i = 0; i < 20; i++) {
+		gettimeofday(&start, NULL);
+		InStr e = in_str_format(in_str_immut_from_literal("{i32} {i32} {u32}\n{i16} {i16} {u16}\n{i8} {i8} {u8}\n{ptr}\n"), NULL, 
+			INT32_MAX, -INT32_MAX, UINT32_MAX, INT16_MAX, -INT16_MAX, UINT16_MAX, INT8_MAX, -INT8_MAX, UINT8_MAX, &s);
+		gettimeofday(&stop, NULL);
+		sumdiff += (uint32_t)(stop.tv_usec - start.tv_usec);
+		in_str_free(e);
+	}
+
+	return sumdiff / 20;
 }
 
-void* printed_realloc(void* d, size_t s)
+uint32_t avg_printf()
 {
-	puts("reallocd!");
-	return realloc(d, s);
+	InStr s = in_str_immut_from_literal("TESSSSSSSSSSSSSSSSSSSSSSSSSSSt");
+	uint32_t sumdiff = 0;
+	struct timeval start, stop;
+	for(int i = 0; i < 20; i++) {
+		gettimeofday(&start, NULL);
+		char* newbuf = malloc((size_t)5000);
+		snprintf(newbuf, (size_t)5000, "%d %d %d\n%d %d %d\n%d %d %d\n%p\n", 
+			INT32_MAX, -INT32_MAX, UINT32_MAX, INT16_MAX, -INT16_MAX, UINT16_MAX, INT8_MAX, -INT8_MAX, UINT8_MAX, (void*)&s);
+		free(newbuf);
+		gettimeofday(&stop, NULL);
+		sumdiff += (uint32_t)(stop.tv_usec - start.tv_usec);
+	}
+
+	return sumdiff / 20;
 }
 
 int in_main(int argc, char** argv)
 {
 	in_fmt_init();
-
-	InAllocator alloc = { .memalloc = printed_malloc, .memrealloc = printed_realloc, .memfree = free };
-
-	InStr s = in_str_immut_from_literal("TESSSSSSSSSSSSSSSSSSSSSSSSSSSt");
-
-	InStr test = in_str_immut_from_literal("{int} {str} {ptr}\n");
-	InStr fmt = in_str_format(test, &alloc, 4000, s, &s);
-	in_str_puts(fmt, stdout);
-	
-	in_str_free(fmt);
-	in_str_free(s);
+	in_fmt_print(stdout, NULL, in_str_immut_from_literal("We took {u32} microseconds\nPrintf took {u32} microseconds\n"), avg_custom(), avg_printf());
 	return 0;
 }
