@@ -28,14 +28,9 @@ int in_main(int argc, char** argv)
 	InAllocator alloc = { .memalloc = printed_malloc, .memrealloc = printed_realloc, .memfree = free };
 
 	InStr s = in_str_immut_from_literal("TESSSSSSSSSSSSSSSSSSSSSSSSSSSt");
-	InStrView v = {
-		.length = 2,
-		.start = 3,
-		.str = s
-	};
 
-	InStr test = in_str_immut_from_literal("This {cstr} is {b} a {str} test {str_view}\n");
-	InStr fmt = in_str_format(test, &alloc, "HELLO!", true, s, v);
+	InStr test = in_str_immut_from_literal("{int} {str} {ptr}\n");
+	InStr fmt = in_str_format(test, &alloc, 4000, s, &s);
 	in_str_puts(fmt, stdout);
 	
 	in_str_free(fmt);

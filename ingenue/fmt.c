@@ -81,10 +81,28 @@ InStr fmt_bool(va_list* va)
 	}
 }
 
+InStr fmt_int(va_list* va)
+{
+	char buf[33];
+	int val = va_arg(*va, int);
+	itoa(val, buf, 10);
+	return in_str_alloc_from_literal(buf, NULL);
+}
+
+InStr fmt_ptr(va_list* va)
+{
+	char buf[33];
+	int val = va_arg(*va, int);
+	itoa(val, buf, 16);
+	return in_str_alloc_from_literal(buf, NULL);
+}
+
 void in_fmt_init(void)
 {
 	in_fmt_add_format(in_str_immut_from_literal("b"), fmt_bool);
 	in_fmt_add_format(in_str_immut_from_literal("str"), fmt_str);
 	in_fmt_add_format(in_str_immut_from_literal("cstr"), fmt_cstr);
 	in_fmt_add_format(in_str_immut_from_literal("str_view"), fmt_strview);
+	in_fmt_add_format(in_str_immut_from_literal("ptr"), fmt_ptr);
+	in_fmt_add_format(in_str_immut_from_literal("int"), fmt_int);
 }
