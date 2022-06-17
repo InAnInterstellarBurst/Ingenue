@@ -178,6 +178,16 @@ InStr in_str_copy_realloc(InStr dst, InStr src, size_t len)
 	return s;
 }
 
+char* in_str_alloc_cstr(InStr str)
+{
+	char* cstr = str.allocator->memalloc((str.length + 1) * sizeof(char));
+	if(cstr != NULL) {
+		memcpy(cstr, str.data, str.length);
+		cstr[str.length] = 0;
+	}
+	return cstr;
+}
+
 InStr in_str_copy_from_view(InStr dst, InStrView v)
 {
 	v.str.data += v.start; // Jesus fuck

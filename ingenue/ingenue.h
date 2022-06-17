@@ -50,6 +50,8 @@ extern InAllocator* gInDefaultMallocator;
 *  Strings
 * ============================================
 */
+typedef InStr(*InFmtTranslationProc)(InAllocator* alloc, va_list va);
+
 typedef struct
 {
 	size_t length;
@@ -95,6 +97,7 @@ InStr in_str_copy_from_view(InStr dst, InStrView v);
 InStr in_str_copy_from_view_realloc(InStr dst, InStrView v);
 InStr in_str_copy_literal(InStr dst, char* data);
 InStr in_str_copy_realloc(InStr dst, InStr src, size_t len);
+char* in_str_alloc_cstr(InStr str);
 
 InStrView in_str_subview_at_first(InStr str, char from);
 InStrView in_str_subview_at_first_v(InStrView v, char from);
@@ -104,9 +107,41 @@ InStrRangedView in_str_subview_between_v(InStrView v, char open, char close);
 InStr in_str_format(InStr fmt, InAllocator* alloc, ...);
 InStr in_str_format_va(InStr fmt, InAllocator* alloc, va_list args);
 
-
-typedef InStr(*InFmtTranslationProc)(InAllocator* alloc, va_list va);
-
 void in_fmt_init(void);
 void in_fmt_print(FILE* stream, InAllocator* alloc, InStr fmt, ...);
 bool in_fmt_add_format(InStr k, InFmtTranslationProc v);
+
+/**
+* ============================================
+*  Filesystem
+* ============================================
+*/
+typedef enum
+{
+	IN_FILE_MODE_READONLY,
+	IN_FILE_MODE_WRITEONLY,
+	IN_FILE_MODE_READWRITE
+} InFileMode;
+
+typedef struct InFileHandle_ InFileHandle;
+typedef struct
+{
+	bool open;
+	size_t size;
+	InStr path;
+	InFileMode mode;
+	InFileHandle* handle;
+	InAllocator alloc;
+} InFile;
+
+
+InFile in_file_open(InStr path, InAllocator alloc, InFileMode mode);
+InFile in_file_open_and_create(InStr path, InAllocator alloc, bool clear);
+void in_file_close(InFile file);
+bool in_file_delete_from_system(InFile file);
+bool in_file_delete_from_system_path(const char* path);
+
+InStr in_file_read(InFile file, size_t from, size_t length);
+bool in_file_write_str(InFile file, InStr str);
+bool in_file_write_bytes(InFile file, uint8_t* bytes, size_t length);
+void in_file_flush(InFile file);
