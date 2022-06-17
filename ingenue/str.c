@@ -89,17 +89,6 @@ void in_str_free(InStr str)
 	}
 }
 
-char* in_str_alloc_cstr(InStr str)
-{
-	char* cstr = str.allocator->memalloc((str.length + 1) * sizeof(char));
-	if(cstr != NULL) {
-		memcpy(cstr, str.data, str.length);
-		cstr[str.length] = 0;
-	}
-	return cstr;
-}
-
-// C++ eat ur heart out
 bool in_str_isnull(InStr s)
 {
 	return (s.data == NULL);

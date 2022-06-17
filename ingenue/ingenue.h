@@ -95,7 +95,6 @@ InStr in_str_copy_from_view(InStr dst, InStrView v);
 InStr in_str_copy_from_view_realloc(InStr dst, InStrView v);
 InStr in_str_copy_literal(InStr dst, char* data);
 InStr in_str_copy_realloc(InStr dst, InStr src, size_t len);
-char* in_str_alloc_cstr(InStr str);
 
 InStrView in_str_subview_at_first(InStr str, char from);
 InStrView in_str_subview_at_first_v(InStrView v, char from);
