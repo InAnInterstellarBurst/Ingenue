@@ -12,6 +12,7 @@
 
 #define IN_MAX_FMTS 256
 
+#if 0
 typedef struct 
 {
 	InStr k;
@@ -170,3 +171,5 @@ void in_fmt_init(void)
 	in_fmt_add_format(in_str_immut_from_literal("i8"), fmt_sint_32);
 	in_fmt_add_format(in_str_immut_from_literal("u8"), fmt_uint_32);
 }
+
+#endif

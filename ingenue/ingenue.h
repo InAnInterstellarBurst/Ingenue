@@ -47,57 +47,40 @@ extern InAllocator* gInDefaultMallocator;
 
 /**
 * ============================================
-*  Strings
+*  Strings & Formatting
 * ============================================
 */
-typedef InStr(*InFmtTranslationProc)(InAllocator* alloc, va_list va);
 
 typedef struct
 {
 	size_t length;
-	size_t capacity;
-	bool mutable;
-	bool ownMemory;
 	char* data;
-	InAllocator* allocator;
 } InStr;
 
-typedef struct  
+typedef struct 
 {
-	size_t start;
-	size_t length;
+	size_t capacity;
 	InStr str;
-} InStrView;
+	InAllocator* alloc;
+} InStrBuf;
 
-typedef struct
-{
-	InStrView snipped;
-	InStrView remaining;
-} InStrRangedView;
-
-static InStr gInNullStr = { 0 };
-
-InStr in_str_alloc(size_t capacity, InAllocator* allocator);
-InStr in_str_alloc_from_literal(char* literal, InAllocator* alloc);
-InStr in_str_alloc_from_view(InStrView v);
-InStr in_str_emplace_into(size_t capacity, void* mem);
-InStr in_str_immut_from_literal(char* literal);
-void in_str_free(InStr str);
-
-bool in_str_isnull(InStr s);
+InStr in_str_create_cstr(char* cstr);
+InStr in_str_substr(InStr s, size_t offset, size_t length);
 bool in_str_eq(InStr a, InStr b);
-bool in_str_eq_strview(InStr a, InStrView b);
+uint32_t in_str_find(InStr s, char delim);
+void in_str_print(InStr str);
 
-void in_str_puts(InStr str, FILE* stream);
-void in_str_putv(InStrView v, FILE* stream);
+void in_strbuf_free(InStrBuf buf);
+InStrBuf in_strbuf_reserve(InStrBuf buf, size_t newsz);
+InStrBuf in_strbuf_cpy_fixed(InStrBuf dst, InStr src, size_t len);
+InStrBuf in_strbuf_cpy_grow(InStrBuf dst, InStr src, size_t len);
 
-InStr in_str_set_from_literal(InStr str, char* data);
-InStr in_str_copy(InStr dst, InStr src, size_t len);
-InStr in_str_copy_from_view(InStr dst, InStrView v);
-InStr in_str_copy_from_view_realloc(InStr dst, InStrView v);
-InStr in_str_copy_literal(InStr dst, char* data);
-InStr in_str_copy_realloc(InStr dst, InStr src, size_t len);
-char* in_str_alloc_cstr(InStr str);
+InStrBuf in_strbuf_alloc(size_t sz, InAllocator* alloc);
+InStrBuf in_strbuf_alloc_format(InAllocator* alloc, InStr fmt, ...);
+InStrBuf in_strbuf_alloc_format_va(InAllocator* alloc, InStr fmt, va_list va);
+
+
+/*
 
 InStrView in_str_subview_at_first(InStr str, char from);
 InStrView in_str_subview_at_first_v(InStrView v, char from);
@@ -110,6 +93,7 @@ InStr in_str_format_va(InStr fmt, InAllocator* alloc, va_list args);
 void in_fmt_init(void);
 void in_fmt_print(FILE* stream, InAllocator* alloc, InStr fmt, ...);
 bool in_fmt_add_format(InStr k, InFmtTranslationProc v);
+*/
 
 /**
 * ============================================

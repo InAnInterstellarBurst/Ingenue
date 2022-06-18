@@ -16,9 +16,9 @@ struct InFileHandle_
 	int fd;
 };
 
+#if 0
 InFile in_file_open(InStr path, InAllocator alloc, InFileMode mode)
 {
-	char* pathCstr = in_str_alloc_cstr(path);
 	uint32_t posixMode = O_RDONLY;
 	if(mode == IN_FILE_MODE_READWRITE) {
 		posixMode = O_RDWR;
@@ -111,6 +111,7 @@ void in_file_flush(InFile file)
 {
 	fsync(file.handle->fd);
 }
+#endif
 
 
 int main(int argc, char** argv)
