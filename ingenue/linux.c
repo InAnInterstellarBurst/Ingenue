@@ -90,15 +90,6 @@ void in_file_close(InFile file)
 	}
 }
 
-bool in_file_delete_from_system(InFile file)
-{
-	char* path = in_str_alloc_cstr(file.path);
-	in_file_close(file);
-	bool r = (remove(path) == 0);
-	file.path.allocator->memfree(path);
-	return r;
-}
-
 bool in_file_delete_from_system_path(const char* path)
 {
 	return (remove(path) == 0);

@@ -138,7 +138,6 @@ typedef struct
 InFile in_file_open(InStr path, InAllocator alloc, InFileMode mode);
 InFile in_file_open_and_create(InStr path, InAllocator alloc, bool clear);
 void in_file_close(InFile file);
-bool in_file_delete_from_system(InFile file);
 bool in_file_delete_from_system_path(const char* path);
 
 InStr in_file_read(InFile file, size_t from, size_t length);
