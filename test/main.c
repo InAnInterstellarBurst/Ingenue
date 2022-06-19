@@ -29,9 +29,10 @@ int in_main(int argc, char** argv)
 		.memfree = free
 	};
 
-	InStr str = in_str_create_cstr("Hello {his} {is} a {pretty long} string!");
-	in_strbuf_alloc_format(NULL, str);
-
+	InStr str = in_str_create_cstr("Hello {his} {is} a {pretty long} {string!");
+	InStrBuf we = in_strbuf_alloc_format(&printedalloc, str);
+	in_str_print(we.str);
+	in_strbuf_free(we);
 	puts("");
 	return 0;
 }
