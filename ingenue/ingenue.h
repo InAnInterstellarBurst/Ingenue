@@ -79,6 +79,13 @@ InStrBuf in_strbuf_alloc(size_t sz, InAllocator* alloc);
 InStrBuf in_strbuf_alloc_format(InAllocator* alloc, InStr fmt, ...);
 InStrBuf in_strbuf_alloc_format_va(InAllocator* alloc, InStr fmt, va_list va);
 
+
+typedef InStrBuf(*InFmtTranslationProc)(InAllocator* alloc, InStr* outbuf, void* lparam);
+
+void in_fmt_init_defaults(void);
+size_t in_fmt_get_translator_count(void);
+bool in_fmt_add_translator(InStr fmt, InFmtTranslationProc proc);
+
 /**
 * ============================================
 *  Filesystem
