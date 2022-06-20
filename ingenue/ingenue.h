@@ -64,7 +64,7 @@ typedef struct
 	InAllocator* alloc;
 } InStrBuf;
 
-InStr in_str_create_cstr(char* cstr);
+InStr incstr(char* cstr);
 InStr in_str_substr(InStr s, size_t offset, size_t length);
 bool in_str_eq(InStr a, InStr b);
 uint32_t in_str_find(InStr s, char delim);
@@ -78,22 +78,6 @@ InStrBuf in_strbuf_cpy_grow(InStrBuf dst, InStr src, size_t len);
 InStrBuf in_strbuf_alloc(size_t sz, InAllocator* alloc);
 InStrBuf in_strbuf_alloc_format(InAllocator* alloc, InStr fmt, ...);
 InStrBuf in_strbuf_alloc_format_va(InAllocator* alloc, InStr fmt, va_list va);
-
-
-/*
-
-InStrView in_str_subview_at_first(InStr str, char from);
-InStrView in_str_subview_at_first_v(InStrView v, char from);
-InStrRangedView in_str_subview_between(InStr s, char open, char close);
-InStrRangedView in_str_subview_between_v(InStrView v, char open, char close);
-
-InStr in_str_format(InStr fmt, InAllocator* alloc, ...);
-InStr in_str_format_va(InStr fmt, InAllocator* alloc, va_list args);
-
-void in_fmt_init(void);
-void in_fmt_print(FILE* stream, InAllocator* alloc, InStr fmt, ...);
-bool in_fmt_add_format(InStr k, InFmtTranslationProc v);
-*/
 
 /**
 * ============================================

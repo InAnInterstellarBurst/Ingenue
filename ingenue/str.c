@@ -11,7 +11,7 @@
 
 InAllocator* gInDefaultMallocator = NULL;
 
-InStr in_str_create_cstr(char* cstr)
+InStr incstr(char* cstr)
 {
 	return (InStr){
 		.length = strlen(cstr),
@@ -137,32 +137,27 @@ InStrBuf in_strbuf_alloc_format(InAllocator* alloc, InStr fmt, ...)
 // This is probably ineffective and hard to parse but yk what it works so :)
 InStrBuf in_strbuf_alloc_format_va(InAllocator* alloc, InStr fmt, va_list va)
 {
-	uint32_t tokStartIdx = in_str_find(fmt, '{');
-	InStr tokStart = in_str_substr(fmt, tokStartIdx + 1, 0);
-	uint32_t tokEndIdx = in_str_find(tokStart, '}');
-
 	InStrBuf result = in_strbuf_alloc(fmt.length * 4, alloc);
-	result = in_strbuf_cpy_grow(result, in_str_substr(fmt, 0, tokStartIdx), 0);
 	while(true) {
-		result = in_strbuf_cpy_grow(result, in_str_substr(tokStart, 0, tokEndIdx), 0);
-		tokStartIdx = in_str_find(tokStart, '{');
+		uint32_t tokStartIdx = in_str_find(fmt, '{');
 		if(tokStartIdx == UINT32_MAX) {
 			break;
 		}
 
-		InStr before = in_str_substr(tokStart, tokEndIdx + 1, tokStartIdx - tokEndIdx - 1);
-		result = in_strbuf_cpy_grow(result, before, 0);
-		tokStart = in_str_substr(tokStart, tokStartIdx + 1, 0);
-		uint32_t newEndIdx = in_str_find(tokStart, '}');
-		if(newEndIdx == UINT32_MAX) {
-			tokEndIdx = tokStartIdx; // Incase we end on unclosed {
+		result = in_strbuf_cpy_grow(result, fmt, tokStartIdx);
+		fmt = in_str_substr(fmt, tokStartIdx + 1, fmt.length - tokStartIdx - 1);
+		uint32_t tokEndIdx = in_str_find(fmt, '}');
+		if(tokEndIdx == UINT32_MAX) {
+			result = in_strbuf_cpy_grow(result, incstr("[Formatting error: Unmatched open brace] "), 0);
 			break;
 		}
-		
-		tokEndIdx = newEndIdx;
+
+		InStr tok = in_str_substr(fmt, 0, tokEndIdx);
+		result = in_strbuf_cpy_grow(result, tok, 0);
+		fmt = in_str_substr(fmt, tokEndIdx + 1, fmt.length - tokEndIdx - 1);
 	}
 
-	InStr final = in_str_substr(tokStart, tokEndIdx + 1, tokStart.length - tokEndIdx - 1);
+	InStr final = in_str_substr(fmt, 0, fmt.length);
 	result = in_strbuf_cpy_grow(result, final, 0);
 	return result;
 }
