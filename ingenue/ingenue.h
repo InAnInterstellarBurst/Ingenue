@@ -84,7 +84,7 @@ typedef InStrBuf(*InFmtTranslationProc)(InAllocator* alloc, InStr* outbuf, void*
 
 void in_fmt_init_defaults(void);
 size_t in_fmt_get_translator_count(void);
-bool in_fmt_add_translator(InStr fmt, InFmtTranslationProc proc);
+void in_fmt_add_translator(InStr fmt, InFmtTranslationProc proc);
 
 /**
 * ============================================

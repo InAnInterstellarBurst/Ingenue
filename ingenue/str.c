@@ -11,6 +11,8 @@
 
 InAllocator* gInDefaultMallocator = NULL;
 
+extern InStrBuf fmt_translate(InStr tok, InAllocator* alloc, InStr* outBuf, void* lparam);
+
 InStr incstr(char* cstr)
 {
 	return (InStr){
@@ -153,7 +155,15 @@ InStrBuf in_strbuf_alloc_format_va(InAllocator* alloc, InStr fmt, va_list va)
 		}
 
 		InStr tok = in_str_substr(fmt, 0, tokEndIdx);
-		result = in_strbuf_cpy_grow(result, tok, 0);
+		
+		// Translate token with SSO
+		char bfr[256];
+		InStr strbuf = { 
+			.length = 256,
+			.data = bfr
+		};
+		InStrBuf trns = fmt_translate(tok, alloc, );
+
 		fmt = in_str_substr(fmt, tokEndIdx + 1, fmt.length - tokEndIdx - 1);
 	}
 

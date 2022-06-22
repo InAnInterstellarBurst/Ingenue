@@ -9,11 +9,12 @@
 #include "pch.h"
 #include <math.h>
 #include <stdarg.h>
+#include <assert.h>
 
 #define IN_MAX_FMTS 256
 
 static uint32_t gTranslatorCount = 0;
-static InFmtTranslationProc gFmtTable[IN_MAX_FMTS];
+static InFmtTranslationProc gFmtTable[IN_MAX_FMTS] = { 0 };
 
 static uint32_t dumbhash(InStr str)
 {
@@ -26,10 +27,19 @@ static uint32_t dumbhash(InStr str)
 	return hash;
 }
 
+InStrBuf fmt_translate(InStr tok, InAllocator* alloc, InStr* outBuf, void* lparam)
+{
+	InFmtTranslationProc proc = gFmtTable[dumbhash(tok)];
+	if(proc == NULL) {
+		return (InStrBuf){ 0 };
+	} else {
+		return proc(alloc, outBuf, lparam);
+	}
+}
+
 
 void in_fmt_init_defaults(void)
 {
-
 }
 
 size_t in_fmt_get_translator_count(void)
@@ -37,7 +47,8 @@ size_t in_fmt_get_translator_count(void)
 	return gTranslatorCount;
 }
 
-bool in_fmt_add_translator(InStr fmt, InFmtTranslationProc proc)
+void in_fmt_add_translator(InStr fmt, InFmtTranslationProc proc)
 {
-
+	assert(gTranslatorCount != IN_MAX_FMTS && gFmtTable[dumbhash(fmt)] == NULL);
+	gFmtTable[dumbhash(fmt)] = proc;
 }

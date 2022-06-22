@@ -37,6 +37,7 @@ function(set_project_warnings project_name)
 		-Wno-unused-parameter
 		-Wno-unused-variable
 		-Werror
+		-Wno-error=sign-conversion
 
 		-Wall
 		-Wextra # reasonable and standard
