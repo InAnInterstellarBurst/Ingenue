@@ -27,6 +27,49 @@ static uint32_t dumbhash(InStr str)
 	return hash;
 }
 
+/**
+ * It's ugly, it's slow, but it works
+ * @param ssobuf There is no way an int is 256 chars :)
+ */
+static InStr translate_int32(InStrBuf ssoBuf, uint32_t val, size_t offset)
+{
+	InStr s = ssoBuf.str;
+	bool significant = false;
+	uint32_t div = (uint32_t)pow(10, 9);
+	while(div >= 1) {
+		uint8_t digit = (uint8_t)floor(val / div);
+		val -= div * digit;
+		div = div / 10;
+		if(!significant) {
+			significant = (digit != 0) || (div == 1);
+		}
+
+		if(significant) {
+			s.data[offset + s.length++] = (char)(digit + '0');
+		}
+	}
+
+	return s;
+}
+
+static InStr translate_addr(InStrBuf ssoBuf, uintptr_t p)
+{
+	InStrBuf s = ssoBuf;
+	s = in_strbuf_cpy_fixed(s, incstr("0x"), 0);
+
+	for(int i = (sizeof(p) << 3) - 4; i >= 0; i -= 4) {
+		int v = (p >> i) & 0xf;
+		if(v >= 0 && v < 10) {
+			s.str.data[s.str.length++] = '0' + (char)v;
+		} else {
+			s.str.data[s.str.length++] = 'a' + (char)(v - 10);
+		}
+	}
+
+	return s.str;
+}
+
+
 static InFmtResult fmt_str_base(InAllocator *alloc, InStrBuf ssoBuf, InStr s)
 {
 	InFmtResult r = { 0 };
@@ -59,6 +102,39 @@ static InFmtResult fmt_strbuf_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list 
 	return fmt_str_base(alloc, ssoBuf, buf.str);
 }
 
+static InFmtResult fmt_bool_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+{
+	bool b = (bool)va_arg(args, int);
+	return fmt_str_base(alloc, ssoBuf, b ? incstr("true") : incstr("false"));
+}
+
+static InFmtResult fmt_ptr_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+{
+	uintptr_t p = va_arg(args, uintptr_t);
+	return fmt_str_base(alloc, ssoBuf, translate_addr(ssoBuf, p));
+}
+
+static InFmtResult fmt_sint32_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+{
+	int32_t val = va_arg(args, int32_t);
+	InStr s;
+	if(val < 0) {
+		s = translate_int32(ssoBuf, (uint32_t)(-val), 1);
+		s.data[0] = '-';
+		s.length++;
+	} else {
+		s = translate_int32(ssoBuf, (uint32_t)val, 0);
+	}
+
+	return fmt_str_base(alloc, ssoBuf, s);
+}
+
+static InFmtResult fmt_uint32_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+{
+	uint32_t val = va_arg(args, uint32_t);
+	InStr s = translate_int32(ssoBuf, val, 0);
+	return fmt_str_base(alloc, ssoBuf, s);
+}
 
 InFmtResult fmt_translate(InStr tok, InAllocator *alloc, InStrBuf ssoBuf, va_list args)
 {
@@ -76,6 +152,15 @@ void in_fmt_init_defaults(void)
 	in_fmt_add_translator(incstr("str"), fmt_str_proc);
 	in_fmt_add_translator(incstr("cstr"), fmt_cstr_proc);
 	in_fmt_add_translator(incstr("strbuf"), fmt_strbuf_proc);
+
+	in_fmt_add_translator(incstr("b"), fmt_bool_proc);
+	in_fmt_add_translator(incstr("i8"), fmt_sint32_proc);
+	in_fmt_add_translator(incstr("u8"), fmt_uint32_proc);
+	in_fmt_add_translator(incstr("i16"), fmt_sint32_proc);
+	in_fmt_add_translator(incstr("u16"), fmt_uint32_proc);
+	in_fmt_add_translator(incstr("i32"), fmt_sint32_proc);
+	in_fmt_add_translator(incstr("u32"), fmt_uint32_proc);
+	in_fmt_add_translator(incstr("ptr"), fmt_ptr_proc);
 }
 
 size_t in_fmt_get_translator_count(void)
@@ -86,6 +171,5 @@ size_t in_fmt_get_translator_count(void)
 void in_fmt_add_translator(InStr fmt, InFmtTranslationProc proc)
 {
 	assert(gTranslatorCount != IN_MAX_FMTS && gFmtTable[dumbhash(fmt)] == NULL);
-	printf("%d\n", dumbhash(fmt));
 	gFmtTable[dumbhash(fmt)] = proc;
 }
