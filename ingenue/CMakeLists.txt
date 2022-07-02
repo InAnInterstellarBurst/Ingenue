@@ -11,14 +11,13 @@ else()
 endif()
 
 set(SRCS
-	pch.h ingenue.h
+	ingenue.h
 	str.c fmt.c
 	${OS_SRC}
 	.licenseheader
 )
 
 add_library(ingenue STATIC ${SRCS})
-target_precompile_headers(ingenue PRIVATE pch.h)
 
 target_link_libraries(ingenue
 	PRIVATE

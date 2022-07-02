@@ -6,8 +6,9 @@
 * file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#include "pch.h"
-#include <stdarg.h>
+#include "ingenue.h"
+#include <stdio.h>
+#include <string.h>
 
 InAllocator *gInDefaultMallocator = NULL;
 

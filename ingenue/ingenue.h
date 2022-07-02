@@ -8,8 +8,9 @@
 
 #pragma once
 
-#include <stdio.h> // >:(
+#include <stdarg.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 
 #define in_min(x, y) ((x < y) ? x : y)
@@ -57,7 +58,6 @@ extern InAllocator *gInDefaultMallocator;
 *  Strings & Formatting
 * ============================================
 */
-
 typedef struct
 {
 	size_t length;
@@ -124,8 +124,8 @@ typedef struct
 } InFile;
 
 
-InFile in_file_open(InStr path, InAllocator alloc, InFileMode mode);
-InFile in_file_open_and_create(InStr path, InAllocator alloc, bool clear);
+InFile in_file_open(const char *path, InAllocator *alloc, InFileMode mode);
+InFile in_file_create(InStr path, InAllocator alloc, bool clear);
 void in_file_close(InFile file);
 bool in_file_delete_from_system_path(const char *path);
 

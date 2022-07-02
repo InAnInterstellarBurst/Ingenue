@@ -8,6 +8,7 @@
 
 #include <ingenue/ingenue.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 void *palloc(size_t s)
 {
