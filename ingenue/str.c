@@ -11,7 +11,7 @@
 
 InAllocator *gInDefaultMallocator = NULL;
 
-extern InFmtResult fmt_translate(InStr tok, InAllocator *alloc, InStrBuf ssoBuf, va_list va);
+extern InFmtResult fmt_translate(InStr tok, InAllocator *alloc, InStrBuf ssoBuf, va_list *va);
 
 InStr incstr(char *cstr)
 {
@@ -137,8 +137,10 @@ InStrBuf in_strbuf_alloc_format(InAllocator *alloc, InStr fmt, ...)
 }
 
 // This is probably ineffective and hard to parse but yk what it works so :)
-InStrBuf in_strbuf_alloc_format_va(InAllocator *alloc, InStr fmt, va_list va)
+InStrBuf in_strbuf_alloc_format_va(InAllocator *alloc, InStr fmt, va_list va_a)
 {
+	va_list va;
+	va_copy(va, va_a);
 	InStrBuf result = in_strbuf_alloc(fmt.length * 4, alloc);
 	while(true) {
 		uint32_t tokStartIdx = in_str_find(fmt, '{');
@@ -168,7 +170,7 @@ InStrBuf in_strbuf_alloc_format_va(InAllocator *alloc, InStr fmt, va_list va)
 			}
 		};
 
-		InFmtResult translated = fmt_translate(tok, alloc, strbuf, va);
+		InFmtResult translated = fmt_translate(tok, alloc, strbuf, &va);
 		if(translated.usedSSO) {
 			result = in_strbuf_cpy_grow(result, translated.smallString.str, 0);
 		} else {
@@ -177,6 +179,7 @@ InStrBuf in_strbuf_alloc_format_va(InAllocator *alloc, InStr fmt, va_list va)
 		}
 	}
 
+	va_end(va);
 	InStr final = in_str_substr(fmt, 0, fmt.length);
 	result = in_strbuf_cpy_grow(result, final, 0);
 	return result;

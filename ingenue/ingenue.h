@@ -94,7 +94,7 @@ typedef struct
 	InStrBuf smallString;
 } InFmtResult;
 
-typedef InFmtResult (*InFmtTranslationProc)(InAllocator *alloc, InStrBuf ssoBuf, va_list args);
+typedef InFmtResult (*InFmtTranslationProc)(InAllocator *alloc, InStrBuf ssoBuf, va_list *args);
 
 void in_fmt_init_defaults(void);
 size_t in_fmt_get_translator_count(void);

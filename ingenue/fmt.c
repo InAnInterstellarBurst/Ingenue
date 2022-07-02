@@ -41,7 +41,7 @@ static InStr translate_int32(InStrBuf ssoBuf, uint32_t val, size_t offset)
 		val -= div * digit;
 		div = div / 10;
 		if(!significant) {
-			significant = (digit != 0) || (div == 1);
+			significant = (digit != 0) || (div == 0);
 		}
 
 		if(significant) {
@@ -84,39 +84,39 @@ static InFmtResult fmt_str_base(InAllocator *alloc, InStrBuf ssoBuf, InStr s)
 	return r;
 }
 
-static InFmtResult fmt_str_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+static InFmtResult fmt_str_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list *args)
 {
-	InStr s = va_arg(args, InStr);
+	InStr s = va_arg(*args, InStr);
 	return fmt_str_base(alloc, ssoBuf, s);
 }
 
-static InFmtResult fmt_cstr_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+static InFmtResult fmt_cstr_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list *args)
 {
-	char *cs = va_arg(args, char *);
+	char *cs = va_arg(*args, char *);
 	return fmt_str_base(alloc, ssoBuf, incstr(cs));
 }
 
-static InFmtResult fmt_strbuf_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+static InFmtResult fmt_strbuf_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list *args)
 {
-	InStrBuf buf = va_arg(args, InStrBuf);
+	InStrBuf buf = va_arg(*args, InStrBuf);
 	return fmt_str_base(alloc, ssoBuf, buf.str);
 }
 
-static InFmtResult fmt_bool_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+static InFmtResult fmt_bool_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list *args)
 {
-	bool b = (bool)va_arg(args, int);
+	bool b = (bool)va_arg(*args, int);
 	return fmt_str_base(alloc, ssoBuf, b ? incstr("true") : incstr("false"));
 }
 
-static InFmtResult fmt_ptr_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+static InFmtResult fmt_ptr_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list *args)
 {
-	uintptr_t p = va_arg(args, uintptr_t);
+	uintptr_t p = va_arg(*args, uintptr_t);
 	return fmt_str_base(alloc, ssoBuf, translate_addr(ssoBuf, p));
 }
 
-static InFmtResult fmt_sint32_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+static InFmtResult fmt_sint32_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list *args)
 {
-	int32_t val = va_arg(args, int32_t);
+	int32_t val = va_arg(*args, int32_t);
 	InStr s;
 	if(val < 0) {
 		s = translate_int32(ssoBuf, (uint32_t)(-val), 1);
@@ -129,14 +129,14 @@ static InFmtResult fmt_sint32_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list 
 	return fmt_str_base(alloc, ssoBuf, s);
 }
 
-static InFmtResult fmt_uint32_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+static InFmtResult fmt_uint32_proc(InAllocator *alloc, InStrBuf ssoBuf, va_list *args)
 {
-	uint32_t val = va_arg(args, uint32_t);
+	uint32_t val = va_arg(*args, uint32_t);
 	InStr s = translate_int32(ssoBuf, val, 0);
 	return fmt_str_base(alloc, ssoBuf, s);
 }
 
-InFmtResult fmt_translate(InStr tok, InAllocator *alloc, InStrBuf ssoBuf, va_list args)
+InFmtResult fmt_translate(InStr tok, InAllocator *alloc, InStrBuf ssoBuf, va_list *args)
 {
 	InFmtTranslationProc proc = gFmtTable[dumbhash(tok)];
 	if(proc == NULL) {
