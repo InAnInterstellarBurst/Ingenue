@@ -30,7 +30,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	open_console();
 #endif
 
-	gInDefaultMallocator = &(InAllocator){
+	gInDefaultMallocator = &(InAllocator) {
 		.memalloc = malloc,
 		.memrealloc = realloc,
 		.memfree = free,

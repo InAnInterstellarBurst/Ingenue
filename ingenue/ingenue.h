@@ -15,35 +15,42 @@
 #define in_min(x, y) ((x < y) ? x : y)
 
 #if IN_DEBUG
-	#if IN_WIN32
-		#define IN_ASSERT(x) if(!x) { __debugbreak(); }
-	#elif IN_LINUX
-		#include <signal.h>
-		#define IN_ASSERT(x) if(!x) { raise(SIGTRAP); }
-	#endif
+#if IN_WIN32
+#define IN_ASSERT(x)    \
+	if(!x) {            \
+		__debugbreak(); \
+	}
+#elif IN_LINUX
+#include <signal.h>
+#define IN_ASSERT(x)    \
+	if(!x) {            \
+		raise(SIGTRAP); \
+	}
+#endif
 #else
-	#define IN_ASSERT(x)
+#define IN_ASSERT(x)
 #endif
 
-extern int in_main(int argc, char** argv);
+
+extern int in_main(int argc, char **argv);
 
 /**
 * ============================================
 *  Allocation
 * ============================================
 */
-typedef void*(*InAllocProc)(size_t);
-typedef void*(*InReallocProc)(void*, size_t);
-typedef void(*InFreeProc)(void*);
+typedef void *(*InAllocProc)(size_t);
+typedef void *(*InReallocProc)(void *, size_t);
+typedef void (*InFreeProc)(void *);
 
-typedef struct  
+typedef struct
 {
 	InAllocProc memalloc;
 	InReallocProc memrealloc;
 	InFreeProc memfree;
 } InAllocator;
 
-extern InAllocator* gInDefaultMallocator;
+extern InAllocator *gInDefaultMallocator;
 
 /**
 * ============================================
@@ -54,17 +61,17 @@ extern InAllocator* gInDefaultMallocator;
 typedef struct
 {
 	size_t length;
-	char* data;
+	char *data;
 } InStr;
 
-typedef struct 
+typedef struct
 {
 	size_t capacity;
 	InStr str;
-	InAllocator* alloc;
+	InAllocator *alloc;
 } InStrBuf;
 
-InStr incstr(char* cstr);
+InStr incstr(char *cstr);
 InStr in_str_substr(InStr s, size_t offset, size_t length);
 bool in_str_eq(InStr a, InStr b);
 uint32_t in_str_find(InStr s, char delim);
@@ -75,12 +82,19 @@ InStrBuf in_strbuf_reserve(InStrBuf buf, size_t newsz);
 InStrBuf in_strbuf_cpy_fixed(InStrBuf dst, InStr src, size_t len);
 InStrBuf in_strbuf_cpy_grow(InStrBuf dst, InStr src, size_t len);
 
-InStrBuf in_strbuf_alloc(size_t sz, InAllocator* alloc);
-InStrBuf in_strbuf_alloc_format(InAllocator* alloc, InStr fmt, ...);
-InStrBuf in_strbuf_alloc_format_va(InAllocator* alloc, InStr fmt, va_list va);
+InStrBuf in_strbuf_alloc(size_t sz, InAllocator *alloc);
+InStrBuf in_strbuf_alloc_format(InAllocator *alloc, InStr fmt, ...);
+InStrBuf in_strbuf_alloc_format_va(InAllocator *alloc, InStr fmt, va_list va);
 
 
-typedef InStrBuf(*InFmtTranslationProc)(InAllocator* alloc, InStr* outbuf, void* lparam);
+typedef struct
+{
+	bool usedSSO;
+	InStrBuf bigBoi;
+	InStrBuf smallString;
+} InFmtResult;
+
+typedef InFmtResult (*InFmtTranslationProc)(InAllocator *alloc, InStrBuf ssoBuf, va_list args);
 
 void in_fmt_init_defaults(void);
 size_t in_fmt_get_translator_count(void);
@@ -105,7 +119,7 @@ typedef struct
 	size_t size;
 	InStr path;
 	InFileMode mode;
-	InFileHandle* handle;
+	InFileHandle *handle;
 	InAllocator alloc;
 } InFile;
 
@@ -113,9 +127,9 @@ typedef struct
 InFile in_file_open(InStr path, InAllocator alloc, InFileMode mode);
 InFile in_file_open_and_create(InStr path, InAllocator alloc, bool clear);
 void in_file_close(InFile file);
-bool in_file_delete_from_system_path(const char* path);
+bool in_file_delete_from_system_path(const char *path);
 
 InStr in_file_read(InFile file, size_t from, size_t length);
 bool in_file_write_str(InFile file, InStr str);
-bool in_file_write_bytes(InFile file, uint8_t* bytes, size_t length);
+bool in_file_write_bytes(InFile file, uint8_t *bytes, size_t length);
 void in_file_flush(InFile file);

@@ -114,9 +114,9 @@ void in_file_flush(InFile file)
 #endif
 
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-	gInDefaultMallocator = &(InAllocator){
+	gInDefaultMallocator = &(InAllocator) {
 		.memalloc = malloc,
 		.memrealloc = realloc,
 		.memfree = free,

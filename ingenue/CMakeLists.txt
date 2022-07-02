@@ -22,9 +22,9 @@ target_precompile_headers(ingenue PRIVATE pch.h)
 
 target_link_libraries(ingenue
 	PRIVATE
-		project_settings
+	project_settings
 	PUBLIC
-		$<$<PLATFORM_ID:Linux>:m>
+	$<$<PLATFORM_ID:Linux>:m>
 )
 
 target_include_directories(ingenue INTERFACE ${CMAKE_SOURCE_DIR})
