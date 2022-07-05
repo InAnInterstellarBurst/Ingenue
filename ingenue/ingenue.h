@@ -143,8 +143,8 @@ void in_file_close(InFile file);
 bool in_file_delete_from_system(const char *path);
 void in_file_flush(InFile file);
 
-bool in_file_set_cursor_pos(InFile *file, size_t pos);
-bool in_file_write_str(InFile file, InStr str);
-bool in_file_write_bytes(InFile file, uint8_t *bytes, size_t length);
-InStrBuf in_file_read(InFile file, size_t length, InStrBuf buf);
+bool in_file_set_cursor_pos(InFile *file, size_t pos); // true is cursor moved
+bool in_file_write_str(InFile file, InStr str); // true if **all** bytes written
+bool in_file_write_bytes(InFile file, uint8_t *bytes, size_t length); // true if **all** bytes written
+InStrBuf in_file_read(InFile file, size_t length, InStrBuf buf); // NullStr on fail
 InStrBuf in_file_read_all(InFile file, InStrBuf buf);
