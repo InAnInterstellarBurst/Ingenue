@@ -8,19 +8,13 @@
 
 #include "ingenue.h"
 #include <stdio.h>
-#include <string.h>
 
 InAllocator *gInDefaultMallocator = NULL;
+const size_t gInFilePositionEOF = SIZE_MAX; // I'll just put u beside ur friend :)
 
 extern InFmtResult fmt_translate(InStr tok, InAllocator *alloc, InStrBuf ssoBuf, va_list *va);
 
-InStr incstr(char *cstr)
-{
-	return (InStr) {
-		.length = strlen(cstr),
-		.data = cstr
-	};
-}
+inline InStr incstr(char *cstr);
 
 InStr in_str_substr(InStr s, size_t offset, size_t length)
 {
@@ -149,7 +143,10 @@ InStrBuf in_strbuf_alloc_format_va(InAllocator *alloc, InStr fmt, va_list va_a)
 			break;
 		}
 
-		result = in_strbuf_cpy_grow(result, fmt, tokStartIdx);
+		if(tokStartIdx != 0) {
+			result = in_strbuf_cpy_grow(result, fmt, tokStartIdx);
+		}
+
 		fmt = in_str_substr(fmt, tokStartIdx + 1, fmt.length - tokStartIdx - 1);
 		uint32_t tokEndIdx = in_str_find(fmt, '}');
 		if(tokEndIdx == UINT32_MAX) {

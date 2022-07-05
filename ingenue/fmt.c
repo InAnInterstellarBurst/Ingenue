@@ -173,3 +173,13 @@ void in_fmt_add_translator(InStr fmt, InFmtTranslationProc proc)
 	assert(gTranslatorCount != IN_MAX_FMTS && gFmtTable[dumbhash(fmt)] == NULL);
 	gFmtTable[dumbhash(fmt)] = proc;
 }
+
+void in_fmt_print(InAllocator *alloc, InStr fmt, ...)
+{
+	va_list l;
+	va_start(l, fmt);
+	InStrBuf r = in_strbuf_alloc_format_va(alloc, fmt, l);
+	in_str_print(r.str);
+	in_strbuf_free(r);
+	va_end(l);
+}

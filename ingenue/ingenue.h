@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <string.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -18,13 +19,13 @@
 #if IN_DEBUG
 #if IN_WIN32
 #define IN_ASSERT(x)    \
-	if(!x) {            \
+	if(!(x)) {          \
 		__debugbreak(); \
 	}
 #elif IN_LINUX
 #include <signal.h>
 #define IN_ASSERT(x)    \
-	if(!x) {            \
+	if(!(x)) {          \
 		raise(SIGTRAP); \
 	}
 #endif
@@ -71,7 +72,14 @@ typedef struct
 	InAllocator *alloc;
 } InStrBuf;
 
-InStr incstr(char *cstr);
+static inline InStr incstr(char *cstr)
+{
+	return (InStr) {
+		.length = strlen(cstr),
+		.data = cstr
+	};
+}
+
 InStr in_str_substr(InStr s, size_t offset, size_t length);
 bool in_str_eq(InStr a, InStr b);
 uint32_t in_str_find(InStr s, char delim);
@@ -100,6 +108,8 @@ void in_fmt_init_defaults(void);
 size_t in_fmt_get_translator_count(void);
 void in_fmt_add_translator(InStr fmt, InFmtTranslationProc proc);
 
+void in_fmt_print(InAllocator *alloc, InStr fmt, ...);
+
 /**
 * ============================================
 *  Filesystem
@@ -117,19 +127,24 @@ typedef struct
 {
 	bool open;
 	size_t size;
+	size_t cursor;
 	InStr path;
 	InFileMode mode;
 	InFileHandle *handle;
-	InAllocator alloc;
+	InAllocator *alloc;
 } InFile;
 
+extern const size_t gInFilePositionEOF;
 
-InFile in_file_open(const char *path, InAllocator *alloc, InFileMode mode);
-InFile in_file_create(InStr path, InAllocator alloc, bool clear);
+
+InFile in_file_create(char *path, InAllocator *alloc);
+InFile in_file_open(char *path, InAllocator *alloc, InFileMode mode);
 void in_file_close(InFile file);
-bool in_file_delete_from_system_path(const char *path);
+bool in_file_delete_from_system(const char *path);
+void in_file_flush(InFile file);
 
-InStr in_file_read(InFile file, size_t from, size_t length);
+bool in_file_set_cursor_pos(InFile *file, size_t pos);
 bool in_file_write_str(InFile file, InStr str);
 bool in_file_write_bytes(InFile file, uint8_t *bytes, size_t length);
-void in_file_flush(InFile file);
+InStrBuf in_file_read(InFile file, size_t length, InStrBuf buf);
+InStrBuf in_file_read_all(InFile file, InStrBuf buf);

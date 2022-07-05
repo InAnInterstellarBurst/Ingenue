@@ -7,7 +7,9 @@
 */
 
 #include "ingenue.h"
+#include <stdio.h>
 #include <stdlib.h>
+
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -17,10 +19,9 @@ struct InFileHandle_
 	int fd;
 };
 
-#if 0
-InFile in_file_open(InStr path, InAllocator alloc, InFileMode mode)
+InFile in_file_open(char *path, InAllocator *alloc, InFileMode mode)
 {
-	uint32_t posixMode = O_RDONLY;
+	int posixMode = O_RDONLY;
 	if(mode == IN_FILE_MODE_READWRITE) {
 		posixMode = O_RDWR;
 	} else if(mode == IN_FILE_MODE_WRITEONLY) {
@@ -29,54 +30,49 @@ InFile in_file_open(InStr path, InAllocator alloc, InFileMode mode)
 
 	size_t fileSize = 0;
 	bool fileValid = false;
-	InFileHandle* fh = alloc.memalloc(sizeof(*fh));
+	InFileHandle *fh = alloc->memalloc(sizeof(*fh));
 	if(fh != NULL) {
-		fh->fd = open(pathCstr, posixMode);
+		fh->fd = open(path, posixMode);
 		fileValid = (fh->fd != -1);
 		if(fileValid) {
 			struct stat st;
 			fstat(fh->fd, &st);
-			fileSize = st.st_size;
+			fileSize = (size_t)st.st_size;
 		}
 	}
 
-	path.allocator->memfree(pathCstr);
-	return (InFile){
+	return (InFile) {
 		.handle = fh,
 		.mode = mode,
-		.path = path,
+		.path = incstr(path),
+		.cursor = 0,
 		.alloc = alloc,
 		.size = fileSize,
 		.open = fileValid
 	};
 }
 
-InFile in_file_open_and_create(InStr path, InAllocator alloc, bool clear)
+InFile in_file_create(char *path, InAllocator *alloc)
 {
-	char* pathCstr = in_str_alloc_cstr(path);
 	size_t fileSize = 0;
 	bool fileValid = false;
-	InFileHandle* fh = alloc.memalloc(sizeof(*fh));
+	InFileHandle *fh = alloc->memalloc(sizeof(*fh));
 	if(fh != NULL) {
-		int flags = O_WRONLY | O_CREAT;
-		if(clear) {
-			flags |= O_TRUNC;
-		}
-
-		fh->fd = open(pathCstr, flags);
+		fh->fd = open(path, O_WRONLY | O_CREAT | O_TRUNC,
+			S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		fileValid = (fh->fd != -1);
 		if(fileValid) {
 			struct stat st;
 			fstat(fh->fd, &st);
-			fileSize = st.st_size;
+			fileSize = (size_t)st.st_size;
 		}
 	}
 
-	path.allocator->memfree(pathCstr);
-	return (InFile){
+	return (InFile) {
+		.cursor = 0,
 		.handle = fh,
 		.mode = IN_FILE_MODE_WRITEONLY,
-		.path = path,
+		.path = incstr(path),
 		.alloc = alloc,
 		.size = fileSize,
 		.open = fileValid
@@ -87,32 +83,74 @@ void in_file_close(InFile file)
 {
 	if(file.open) {
 		close(file.handle->fd);
-		file.alloc.memfree(file.handle);
+		file.alloc->memfree(file.handle);
 	}
 }
 
-bool in_file_delete_from_system_path(const char* path)
+bool in_file_delete_from_system(const char *path)
 {
 	return (remove(path) == 0);
-}
-
-InStr in_file_read(InFile file, size_t from, size_t length)
-{
-}
-
-bool in_file_write_str(InFile file, InStr str)
-{
-}
-
-bool in_file_write_bytes(InFile file, uint8_t* bytes, size_t length)
-{
 }
 
 void in_file_flush(InFile file)
 {
 	fsync(file.handle->fd);
 }
-#endif
+
+bool in_file_set_cursor_pos(InFile *file, size_t pos)
+{
+	off_t curpos = 0;
+	if(pos == gInFilePositionEOF) {
+		curpos = lseek(file->handle->fd, 0, SEEK_END);
+	} else {
+		curpos = lseek(file->handle->fd, (off_t)pos, SEEK_SET);
+	}
+
+	if(curpos != -1) {
+		file->cursor = (size_t)curpos;
+		return true;
+	}
+	return false;
+}
+
+bool in_file_write_str(InFile file, InStr str)
+{
+	size_t datalen = str.length * sizeof(char);
+	ssize_t result = write(file.handle->fd, str.data, datalen);
+	return ((size_t)result == datalen);
+}
+
+bool in_file_write_bytes(InFile file, uint8_t *bytes, size_t length)
+{
+	ssize_t result = write(file.handle->fd, bytes, length);
+	return ((size_t)result == length);
+}
+
+InStrBuf in_file_read(InFile file, size_t length, InStrBuf buf)
+{
+	size_t readlen = length;
+	if(readlen + file.cursor > file.size) {
+		readlen = file.size - file.cursor;
+	}
+
+	if(buf.capacity < readlen) {
+		return (InStrBuf) { 0 };
+	}
+
+	ssize_t len = read(file.handle->fd, buf.str.data, readlen);
+	if(len == -1) {
+		return (InStrBuf) { 0 };
+	}
+
+	buf.str.length = (size_t)len;
+	return buf;
+}
+
+InStrBuf in_file_read_all(InFile file, InStrBuf buf)
+{
+	in_file_set_cursor_pos(&file, 0);
+	return in_file_read(file, file.size, buf);
+}
 
 
 int main(int argc, char **argv)
